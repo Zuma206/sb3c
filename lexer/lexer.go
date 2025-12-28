@@ -1,6 +1,9 @@
 package lexer
 
-import "errors"
+import (
+	"errors"
+	"fmt"
+)
 
 // Lexes a file into a list of tokens and errors
 type Lexer struct {
@@ -108,4 +111,24 @@ func (lexer *Lexer) parseToken() (*Token, error) {
 	}
 	lexer.consumeError()
 	return nil, EOFError
+}
+
+var IndexOutOfBounds = errors.New("index out of bounds")
+
+// Returns the token at index i relative to the next token
+func (lexer *Lexer) getToken(i int) (*Token, error) {
+	index := lexer.next + i
+	if index < 0 {
+		return nil, fmt.Errorf("%w: token index %d is out of bounds", IndexOutOfBounds, i)
+	}
+	if index >= len(lexer.tokens) {
+		for range index + 1 - len(lexer.tokens) {
+			token, err := lexer.parseToken()
+			if err != nil {
+				return nil, err
+			}
+			lexer.tokens = append(lexer.tokens, token)
+		}
+	}
+	return lexer.tokens[index], nil
 }
