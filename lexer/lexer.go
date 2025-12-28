@@ -32,3 +32,29 @@ func NewLexer(src []byte, types []*Type) *Lexer {
 		next: 0,
 	}
 }
+
+// Constructs a new token with a given type, with the src of a given length
+func (lexer *Lexer) newToken(tokenType *Type, len int) *Token {
+	return &Token{
+		Type: tokenType,
+		Section: Section{
+			Pos: lexer.pos,
+			Src: lexer.src[lexer.pos.Index:len],
+		},
+	}
+}
+
+// Find the longest token match out of all the token types
+func (lexer *Lexer) getLongestMatch() (*Token, bool) {
+	var token *Token
+	for _, tokenType := range lexer.types {
+		pos := tokenType.regex.FindSubmatchIndex(lexer.src[lexer.pos.Index:])
+		if pos != nil && (token.Src == nil || len(token.Src) < pos[1]) {
+			token = lexer.newToken(tokenType, pos[1])
+		}
+	}
+	if token == nil {
+		return nil, false
+	}
+	return token, true
+}
