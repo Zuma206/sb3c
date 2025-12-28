@@ -55,7 +55,7 @@ func (lexer *Lexer) getLongestMatch() (*Token, bool) {
 	var token *Token
 	for _, tokenType := range lexer.types {
 		pos := tokenType.regex.FindSubmatchIndex(lexer.src[lexer.pos.Index:])
-		if pos != nil && (token.Src == nil || len(token.Src) < pos[1]) {
+		if pos != nil && (token == nil || len(token.Src) < pos[1]) {
 			token = lexer.newToken(tokenType, pos[1])
 		}
 	}
