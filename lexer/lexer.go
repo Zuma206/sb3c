@@ -75,7 +75,7 @@ func (lexer *Lexer) consume(src []byte) {
 }
 
 // Consumes source code into the current error
-func (lexer *Lexer) consumeAsError() {
+func (lexer *Lexer) consumeIntoError() {
 	src := []byte{lexer.src[lexer.pos.Index]}
 	if lexer.error == nil {
 		lexer.error = &Section{Pos: lexer.pos, Src: src}
