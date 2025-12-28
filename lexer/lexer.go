@@ -58,3 +58,15 @@ func (lexer *Lexer) getLongestMatch() (*Token, bool) {
 	}
 	return token, true
 }
+
+// Consumes a token, incrementing the lexer position past that token
+func (lexer *Lexer) consume(token *Token) {
+	lexer.pos.LineOffset += len(token.Src)
+	lexer.pos.Index += len(token.Src)
+	for _, char := range token.Src {
+		if char == '\n' {
+			lexer.pos.LineOffset = 1
+			lexer.pos.LineNumber++
+		}
+	}
+}
