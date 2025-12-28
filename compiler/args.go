@@ -1,4 +1,4 @@
-package sb3c
+package compiler
 
 import (
 	"errors"
