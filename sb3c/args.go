@@ -6,17 +6,22 @@ import (
 	"fmt"
 )
 
+// All positional arguments and flags used by the compiler
 type Args struct {
 	Target string
 }
 
+// Expected number of positional arguments needed to construct Args
 const expectedPositionalArgs = 1
 
 var (
+	// Too many positional arguments were passed to the compiler
 	UnexpectedPositionalArgs = errors.New("unexpected positional args")
-	MissingPositionalArgs    = errors.New("missing positional args")
+	// Too few positional arguments were passed to the compiler
+	MissingPositionalArgs = errors.New("missing positional args")
 )
 
+// Parses the command line arguments from os.Args and returns them in a struct
 func parseArgs() (*Args, error) {
 	flag.Parse()
 	args := flag.Args()
