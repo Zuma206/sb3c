@@ -8,6 +8,8 @@ type Lexer struct {
 	errors []*Section
 	// Lex tokens parsed so far
 	tokens []*Token
+	// The current error being encountered by the lexer
+	error *Section
 	// The types of tokens the lexer can parse
 	types []*Type
 	// The current working position of the lexer in the file
@@ -22,6 +24,7 @@ func NewLexer(src []byte, types []*Type) *Lexer {
 	return &Lexer{
 		errors: make([]*Section, 0),
 		tokens: make([]*Token, 0),
+		error:  nil,
 		types:  types,
 		pos: Position{
 			LineNumber: 1,
@@ -59,14 +62,25 @@ func (lexer *Lexer) getLongestMatch() (*Token, bool) {
 	return token, true
 }
 
-// Consumes a token, incrementing the lexer position past that token
-func (lexer *Lexer) consume(token *Token) {
-	lexer.pos.LineOffset += len(token.Src)
-	lexer.pos.Index += len(token.Src)
-	for _, char := range token.Src {
+// Consumes source code, incrementing the lexer position past it
+func (lexer *Lexer) consume(src []byte) {
+	lexer.pos.LineOffset += len(src)
+	lexer.pos.Index += len(src)
+	for _, char := range src {
 		if char == '\n' {
 			lexer.pos.LineOffset = 1
 			lexer.pos.LineNumber++
 		}
 	}
+}
+
+// Consumes source code into the current error
+func (lexer *Lexer) consumeAsError() {
+	src := []byte{lexer.src[lexer.pos.Index]}
+	if lexer.error == nil {
+		lexer.error = &Section{Pos: lexer.pos, Src: src}
+	} else {
+		lexer.error.Src = append(lexer.error.Src, lexer.src[lexer.pos.Index])
+	}
+	lexer.consume(src)
 }
