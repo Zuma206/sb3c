@@ -2,11 +2,16 @@ package lexer
 
 import "github.com/zuma206/sb3c/utils"
 
+// Lexes a file into a list of tokens and errors
 type Lexer struct {
+	// Lex errors encountered so far
 	errors *utils.List[*Section]
+	// Lex tokens parsed so far
 	tokens *utils.List[*Token]
-	pos    Position
-	src    []byte
+	// The current working position of the lexer in the file
+	pos Position
+	// The source code being lexed
+	src []byte
 }
 
 func NewLexer(src []byte) *Lexer {
