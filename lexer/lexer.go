@@ -45,7 +45,7 @@ func (lexer *Lexer) newToken(tokenType *Type, len int) *Token {
 		Type: tokenType,
 		Section: Section{
 			Pos: lexer.pos,
-			Src: lexer.src[lexer.pos.Index:len],
+			Src: lexer.src[lexer.pos.Index : lexer.pos.Index+len],
 		},
 	}
 }

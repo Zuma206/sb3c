@@ -1,6 +1,8 @@
 package compiler
 
-import "fmt"
+import (
+	"os"
+)
 
 // sb3c entry point with error handling
 func Main() error {
@@ -8,6 +10,9 @@ func Main() error {
 	if err != nil {
 		return err
 	}
-	fmt.Println(args.Target)
-	return nil
+	src, err := os.ReadFile(args.Target)
+	if err != nil {
+		return err
+	}
+	return CompileFile(args.Target, src)
 }
