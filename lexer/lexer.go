@@ -142,3 +142,23 @@ func (lexer *Lexer) Next() (*Token, error) {
 	lexer.next++
 	return token, err
 }
+
+// Parses all of the file
+func (lexer *Lexer) parseAll() {
+	var err error
+	for err == nil {
+		_, err = lexer.Next()
+	}
+}
+
+// Parse the remainder of the file and return all parsed tokens
+func (lexer *Lexer) GetTokens() []*Token {
+	lexer.parseAll()
+	return lexer.tokens
+}
+
+// Parse the remainder of the file and return all errors
+func (lexer *Lexer) GetErrors() []*Section {
+	lexer.parseAll()
+	return lexer.errors
+}
