@@ -92,3 +92,20 @@ func (lexer *Lexer) consumeError() {
 		lexer.error = nil
 	}
 }
+
+var EOFError = errors.New("eof")
+
+// Parses the next token out of the source code, returning an error if the end of file is hit
+func (lexer *Lexer) parseToken() (*Token, error) {
+	for lexer.pos.Index < len(lexer.src) {
+		token, ok := lexer.getLongestMatch()
+		if ok {
+			lexer.consume(token.Src)
+			lexer.consumeError()
+			return token, nil
+		}
+		lexer.consumeIntoError()
+	}
+	lexer.consumeError()
+	return nil, EOFError
+}
