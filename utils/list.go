@@ -1,5 +1,7 @@
 package utils
 
+import "iter"
+
 type List[T any] struct {
 	head *ListNode[T]
 	tail *ListNode[T]
@@ -23,4 +25,14 @@ func (list *List[T]) PushBack(value T) {
 		list.tail.next = node
 	}
 	list.tail = node
+}
+
+func (list *List[T]) Iter() iter.Seq[T] {
+	return func(yield func(T) bool) {
+		for node := list.head; node != nil; node = node.next {
+			if ok := yield(node.value); !ok {
+				return
+			}
+		}
+	}
 }
