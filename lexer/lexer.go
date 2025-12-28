@@ -84,3 +84,11 @@ func (lexer *Lexer) consumeIntoError() {
 	}
 	lexer.consume(src)
 }
+
+// Consumes the current error into the errors slice
+func (lexer *Lexer) consumeError() {
+	if lexer.error != nil {
+		lexer.errors = append(lexer.errors, lexer.error)
+		lexer.error = nil
+	}
+}
