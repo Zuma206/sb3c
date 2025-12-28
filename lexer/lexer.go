@@ -116,7 +116,7 @@ func (lexer *Lexer) parseToken() (*Token, error) {
 var IndexOutOfBounds = errors.New("index out of bounds")
 
 // Returns the token at index i relative to the next token
-func (lexer *Lexer) getToken(i int) (*Token, error) {
+func (lexer *Lexer) Peek(i int) (*Token, error) {
 	index := lexer.next + i
 	if index < 0 {
 		return nil, fmt.Errorf("%w: token index %d is out of bounds", IndexOutOfBounds, i)
@@ -131,4 +131,14 @@ func (lexer *Lexer) getToken(i int) (*Token, error) {
 		}
 	}
 	return lexer.tokens[index], nil
+}
+
+// Returns the next token and increments the next value
+func (lexer *Lexer) Next() (*Token, error) {
+	token, err := lexer.Peek(0)
+	if err != nil {
+		return nil, err
+	}
+	lexer.next++
+	return token, err
 }
