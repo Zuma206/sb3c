@@ -8,6 +8,7 @@ import (
 
 func CompileFile(name string, src []byte) error {
 	lex := lexer.NewLexer(src, language.Types)
+	visualisation.Visualise(lex.GetErrors())
 	visualisation.Visualise(lex.GetTokens())
 	return nil
 }
