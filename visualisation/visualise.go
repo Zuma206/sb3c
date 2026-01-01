@@ -54,6 +54,8 @@ func (visualiser *Visualiser) visualiseWithReflection(value any) bool {
 func (visualiser *Visualiser) visualiseSpecialCase(value any) bool {
 	if token, ok := value.(*lexer.Token); ok {
 		fmt.Fprintf(visualiser.file, "%s(%q, %d:%d)\n", token.Type.Name, token.Src, token.Pos.LineNumber, token.Pos.LineOffset)
+	} else if error, ok := value.(*lexer.Section); ok {
+		fmt.Fprintf(visualiser.file, "%q, %d:%d\n", error.Src, error.Pos.LineNumber, error.Pos.LineOffset)
 	} else {
 		return false
 	}
