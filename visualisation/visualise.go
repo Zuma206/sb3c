@@ -12,13 +12,28 @@ type Visualiser struct {
 	indentation int
 }
 
+func (visualiser *Visualiser) indent(f func()) {
+	visualiser.indentation++
+	f()
+	visualiser.indentation--
+}
+
+func (visualiser *Visualiser) print(args ...any) {
+	for range visualiser.indentation {
+		fmt.Fprint(visualiser.file, "  ")
+	}
+	fmt.Fprint(visualiser.file, args...)
+}
+
 func (visualiser *Visualiser) visualiseSlice(value any) {
 	valueof := reflect.ValueOf(value)
 	fmt.Fprintln(visualiser.file, "[]"+valueof.Type().Elem().Elem().Name(), "{")
-	for i := 0; i < valueof.Len(); i++ {
-		fmt.Fprintf(visualiser.file, "[%d]: ", i)
-		visualiser.visualise(valueof.Index(i).Interface())
-	}
+	visualiser.indent(func() {
+		for i := 0; i < valueof.Len(); i++ {
+			visualiser.print("[", i, "]: ")
+			visualiser.visualise(valueof.Index(i).Interface())
+		}
+	})
 	fmt.Fprintln(visualiser.file, "}")
 }
 
