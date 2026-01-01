@@ -5,6 +5,8 @@ import (
 	"io"
 	"os"
 	"reflect"
+
+	"github.com/zuma206/sb3c/lexer"
 )
 
 type Visualiser struct {
@@ -38,19 +40,32 @@ func (visualiser *Visualiser) visualiseSlice(value any) {
 }
 
 // Visualise a value using reflection
-func (visualiser *Visualiser) visualiseWithReflection(value any) {
+func (visualiser *Visualiser) visualiseWithReflection(value any) bool {
 	typeof := reflect.TypeOf(value)
 	switch typeof.Kind() {
 	case reflect.Slice:
 		visualiser.visualiseSlice(value)
 	default:
-		fmt.Println(value)
+		return false
 	}
+	return true
+}
+
+func (visualiser *Visualiser) visualiseSpecialCase(value any) bool {
+	if token, ok := value.(*lexer.Token); ok {
+		fmt.Fprintf(visualiser.file, "%s(%q, %d:%d)\n", token.Type.Name, token.Src, token.Pos.LineNumber, token.Pos.LineOffset)
+	} else {
+		return false
+	}
+	return true
 }
 
 // Visualise a data structure using a visualiser
 func (visualiser *Visualiser) visualise(value any) {
-	visualiser.visualiseWithReflection(value)
+	if !(visualiser.visualiseSpecialCase(value) ||
+		visualiser.visualiseWithReflection(value)) {
+		fmt.Fprintln(visualiser.file, value)
+	}
 }
 
 // Visualise a data structure on the given file
