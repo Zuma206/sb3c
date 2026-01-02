@@ -18,16 +18,15 @@ const (
 
 // Token type sets
 var (
-	Symbols     = []string{OpenBrace, CloseBrace, Equals, Semicolon, At, Period, OpenBracket, CloseBracket}
-	Whitespaces = []string{" ", "\n", "\r", "\t"}
-	Keywords    = []string{Class, Extends}
+	Symbols  = []string{OpenBrace, CloseBrace, Equals, Semicolon, At, Period, OpenBracket, CloseBracket}
+	Keywords = []string{Class, Extends}
 )
 
 // Token types
 var (
 	NumberLiteral = lexer.NewType("NumberLiteral", `[0-9]([0-9_]*[0-9])?`)
 	Identifier    = lexer.NewType("Identifier", `[A-z$_][0-z$_]*`)
-	Whitespace    = lexer.NewTypeSet("Whitespace", Whitespaces)
+	Whitespace    = lexer.NewType("Whitespace", `[\n\r\t\ ]+`)
 	Keyword       = lexer.NewTypeSet("Keyword", Keywords)
 	Symbol        = lexer.NewTypeSet("Symbol", Symbols)
 )
