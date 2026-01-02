@@ -16,5 +16,10 @@ type MethodDeclaration struct {
 	Decorators []*lexer.Token
 	Name       *lexer.Token
 	Args       []*lexer.Token
-	Body       []any
+	Body       []*FunctionCall
+}
+
+type FunctionCall struct {
+	Name *lexer.Token
+	Args []*lexer.Token
 }
