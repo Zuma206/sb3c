@@ -33,3 +33,6 @@ go.work.sum
 
 # Temporary folder to do with whatever you wish :)
 temp
+
+# Go build output binary
+sb3c
