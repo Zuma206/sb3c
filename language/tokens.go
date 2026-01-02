@@ -25,10 +25,11 @@ var (
 
 // Token types
 var (
-	Identifier = lexer.NewType("Identifier", `[A-z$_][0-z$_]*`)
-	Whitespace = lexer.NewTypeSet("Whitespace", Whitespaces)
-	Keyword    = lexer.NewTypeSet("Keyword", Keywords)
-	Symbol     = lexer.NewTypeSet("Symbol", Symbols)
+	NumberLiteral = lexer.NewType("NumberLiteral", `[0-9]([0-9_]*[0-9])?`)
+	Identifier    = lexer.NewType("Identifier", `[A-z$_][0-z$_]*`)
+	Whitespace    = lexer.NewTypeSet("Whitespace", Whitespaces)
+	Keyword       = lexer.NewTypeSet("Keyword", Keywords)
+	Symbol        = lexer.NewTypeSet("Symbol", Symbols)
 )
 
-var Types = []*lexer.Type{Symbol, Keyword, Identifier, Whitespace}
+var Types = []*lexer.Type{Symbol, Keyword, Identifier, Whitespace, NumberLiteral}
