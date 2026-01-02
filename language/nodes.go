@@ -1,25 +1,28 @@
 package language
 
-import "github.com/zuma206/sb3c/lexer"
+import (
+	"github.com/zuma206/sb3c/lexer"
+	"github.com/zuma206/sb3c/utils"
+)
 
 type Program struct {
-	Declarations []*ClassDeclaration
+	Declarations *utils.List[*ClassDeclaration]
 }
 
 type ClassDeclaration struct {
 	Name         *lexer.Token
 	Super        *lexer.Token
-	Declarations []*MethodDeclaration
+	Declarations *utils.List[*MethodDeclaration]
 }
 
 type MethodDeclaration struct {
-	Decorators []*lexer.Token
+	Decorators *utils.List[*lexer.Token]
 	Name       *lexer.Token
-	Args       []*lexer.Token
-	Body       []*FunctionCall
+	Args       *utils.List[*lexer.Token]
+	Body       *utils.List[*FunctionCall]
 }
 
 type FunctionCall struct {
 	Name *lexer.Token
-	Args []*lexer.Token
+	Args *utils.List[*lexer.Token]
 }
