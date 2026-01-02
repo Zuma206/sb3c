@@ -39,3 +39,13 @@ func (parser *Parser) Peek(offset int) (*lexer.Token, error) {
 	}
 	return parser.tokens[parser.index], nil
 }
+
+// Consumes a token from the token list, incrementing the parse index past it
+func (parser *Parser) Consume() (*lexer.Token, error) {
+	token, err := parser.Peek(0)
+	if err != nil {
+		return nil, err
+	}
+	parser.index++
+	return token, nil
+}
