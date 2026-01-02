@@ -9,5 +9,12 @@ type Program struct {
 type ClassDeclaration struct {
 	Name         *lexer.Token
 	Super        *lexer.Token
-	Declarations []any
+	Declarations []*MethodDeclaration
+}
+
+type MethodDeclaration struct {
+	Decorators []*lexer.Token
+	Name       *lexer.Token
+	Args       []*lexer.Token
+	Body       []any
 }
