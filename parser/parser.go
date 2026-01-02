@@ -63,3 +63,8 @@ func (parser *Parser) Match(matchers ...Matcher) error {
 	}
 	return nil
 }
+
+// Indicates if a parser has reached the end of the token list
+func (parser *Parser) Finished() bool {
+	return parser.index >= len(parser.tokens)
+}
