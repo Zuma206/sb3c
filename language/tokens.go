@@ -4,16 +4,22 @@ import "github.com/zuma206/sb3c/lexer"
 
 // String literal keywords & symbols
 const (
-	OpenScope  = "{"
-	CloseScope = "}"
-	Class      = "class"
-	Extends    = "extends"
+	OpenBrace    = "{"
+	CloseBrace   = "}"
+	Class        = "class"
+	Extends      = "extends"
+	Equals       = "="
+	Semicolon    = ";"
+	At           = "@"
+	Period       = "."
+	OpenBracket  = "("
+	CloseBracket = ")"
 )
 
 // Token type sets
 var (
+	Symbols     = []string{OpenBrace, CloseBrace, Equals, Semicolon, At, Period, OpenBracket, CloseBracket}
 	Whitespaces = []string{" ", "\n", "\r", "\t"}
-	Symbols     = []string{OpenScope, CloseScope}
 	Keywords    = []string{Class, Extends}
 )
 
