@@ -68,3 +68,11 @@ func (parser *Parser) Match(matchers ...Matcher) error {
 func (parser *Parser) Finished() bool {
 	return parser.index >= len(parser.tokens)
 }
+
+// Only consumes if the matcher matches the token being consumed, else errors
+func (parser *Parser) ConsumeIf(matcher Matcher) (*lexer.Token, error) {
+	if err := parser.Match(matcher); err != nil {
+		return nil, err
+	}
+	return parser.Consume()
+}
