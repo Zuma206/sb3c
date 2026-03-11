@@ -1,6 +1,7 @@
 package lexer
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"regexp"
@@ -16,6 +17,7 @@ type Type struct {
 
 var (
 	UnexpectedTokenTypeError = errors.New("UnexpectedTokenTypeError")
+	UnexpectedTokenSrcError  = errors.New("UnexpectedTokenSrcError")
 )
 
 // Makes Type implement Matcher interface, checking if the token matches the type
@@ -25,6 +27,21 @@ func (tokenType *Type) MatchLexToken(token *Token) error {
 	}
 	return fmt.Errorf("%w: expected %s, found %s",
 		UnexpectedTokenTypeError, tokenType.Name, token.Type.Name)
+}
+
+// Returns a new matcher that matches on the given source as well as the tokenType
+func (tokenType *Type) WithSource(src string) MatcherFunc {
+	srcBytes := []byte(src)
+	return func(token *Token) error {
+		if err := tokenType.MatchLexToken(token); err != nil {
+			return err
+		}
+		if bytes.Equal(srcBytes, token.Src) {
+			return nil
+		}
+		return fmt.Errorf("%w: expected %q, found %q",
+			UnexpectedTokenSrcError, src, string(token.Src))
+	}
 }
 
 // Creates a lex token type from it's human readable name, and a regex that matches it
