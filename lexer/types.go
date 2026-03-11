@@ -1,6 +1,8 @@
 package lexer
 
 import (
+	"errors"
+	"fmt"
 	"regexp"
 	"strings"
 )
@@ -10,6 +12,19 @@ type Type struct {
 	// The type's human readable name
 	Name  string
 	regex *regexp.Regexp
+}
+
+var (
+	UnexpectedTokenTypeError = errors.New("UnexpectedTokenTypeError")
+)
+
+// Makes Type implement Matcher interface, checking if the token matches the type
+func (tokenType *Type) MatchLexToken(token *Token) error {
+	if token.Type == tokenType {
+		return nil
+	}
+	return fmt.Errorf("%w: expected %s, found %s",
+		UnexpectedTokenTypeError, tokenType.Name, token.Type.Name)
 }
 
 // Creates a lex token type from it's human readable name, and a regex that matches it
