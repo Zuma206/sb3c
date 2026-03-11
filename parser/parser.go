@@ -57,7 +57,7 @@ func (parser *Parser) Match(matchers ...Matcher) error {
 		if err != nil {
 			return err
 		}
-		if err := matcher(token); err != nil {
+		if err := matcher.MatchLexToken(token); err != nil {
 			return err
 		}
 	}
