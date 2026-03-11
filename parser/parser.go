@@ -70,7 +70,7 @@ func (parser *Parser) Finished() bool {
 }
 
 // Only consumes if the matcher matches the token being consumed, else errors
-func (parser *Parser) ConsumeIf(matcher Matcher) (*lexer.Token, error) {
+func (parser *Parser) ConsumeIf(matcher lexer.Matcher) (*lexer.Token, error) {
 	if err := parser.Match(matcher); err != nil {
 		return nil, err
 	}
