@@ -76,3 +76,31 @@ func (parser *Parser) ConsumeIf(matcher lexer.Matcher) (*lexer.Token, error) {
 	}
 	return parser.Consume()
 }
+
+type ParseStep struct {
+	// A pointer to write the token into if it matches. Can be nil,
+	//	meaning the token will be discarded
+	Result **lexer.Token
+	// The matcher to run against the token
+	Matcher lexer.Matcher
+	// Whether or not the parser should error if the matcher does
+	// not match
+	Optional bool
+}
+
+// Parse multiple tokens according to steps
+func (parser *Parser) Parse(steps []*ParseStep) error {
+	for _, step := range steps {
+		token, err := parser.ConsumeIf(step.Matcher)
+		if err != nil {
+			if !step.Optional {
+				return err
+			}
+			break
+		}
+		if step.Result != nil {
+			*step.Result = token
+		}
+	}
+	return nil
+}
