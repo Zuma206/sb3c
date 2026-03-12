@@ -51,7 +51,7 @@ func (parser *Parser) Consume() (*lexer.Token, error) {
 }
 
 // Validates that the next token(s) in the list appease the corresponding matchers
-func (parser *Parser) Match(matchers ...Matcher) error {
+func (parser *Parser) Match(matchers ...lexer.Matcher) error {
 	for offset, matcher := range matchers {
 		token, err := parser.Peek(offset)
 		if err != nil {
