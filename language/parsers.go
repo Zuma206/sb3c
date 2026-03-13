@@ -62,13 +62,9 @@ func parseMethods(p *parser.Parser) (*utils.List[*MethodDeclaration], error) {
 
 func parseMethod(p *parser.Parser) (*MethodDeclaration, error) {
 	method := &MethodDeclaration{
-		Args: utils.NewList[*lexer.Token](),
-		Body: utils.NewList[*FunctionCall](),
-	}
-	if _, err := p.ConsumeIf(Symbol.WithSource(At)); err == nil {
-		if method.Decorator, err = p.ConsumeIf(Identifier); err != nil {
-			return nil, err
-		}
+		Decorator: parseOptionalDecorator(p),
+		Args:      utils.NewList[*lexer.Token](),
+		Body:      utils.NewList[*FunctionCall](),
 	}
 	if err := p.Parse([]*parser.ParseStep{
 		{Matcher: Whitespace, Optional: true},
@@ -86,4 +82,13 @@ func parseMethod(p *parser.Parser) (*MethodDeclaration, error) {
 		return nil, err
 	}
 	return method, nil
+}
+
+func parseOptionalDecorator(p *parser.Parser) *lexer.Token {
+	if _, err := p.ConsumeIf(Symbol.WithSource(At)); err == nil {
+		if decorator, err := p.ConsumeIf(Identifier); err != nil {
+			return decorator
+		}
+	}
+	return nil
 }
