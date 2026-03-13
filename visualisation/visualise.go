@@ -39,12 +39,42 @@ func (visualiser *Visualiser) visualiseSlice(value any) {
 	fmt.Fprintln(visualiser.file, "}")
 }
 
+func (visualiser *Visualiser) visualiseStruct(value any) {
+	valueof := reflect.ValueOf(value)
+	typeof := valueof.Type()
+	visualiser.print(typeof.Name(), " {\n")
+	visualiser.indent(func() {
+		for i := range valueof.NumField() {
+			field := typeof.Field(i)
+			if field.IsExported() {
+				visualiser.print(field.Name, ":")
+				visualiser.visualise(valueof.Field(i).Interface())
+			}
+		}
+	})
+	visualiser.print("}\n")
+}
+
+func (visualiser *Visualiser) visualisePointer(value any) {
+	valueof := reflect.ValueOf(value)
+	if valueof.IsNil() {
+		fmt.Fprint(visualiser.file, "nil")
+	} else {
+		fmt.Fprint(visualiser.file, "*")
+		visualiser.visualiseWithReflection(valueof.Elem().Interface())
+	}
+}
+
 // Visualise a value using reflection
 func (visualiser *Visualiser) visualiseWithReflection(value any) bool {
 	typeof := reflect.TypeOf(value)
 	switch typeof.Kind() {
 	case reflect.Slice:
 		visualiser.visualiseSlice(value)
+	case reflect.Pointer:
+		visualiser.visualisePointer(value)
+	case reflect.Struct:
+		visualiser.visualiseStruct(value)
 	default:
 		return false
 	}
@@ -53,9 +83,11 @@ func (visualiser *Visualiser) visualiseWithReflection(value any) bool {
 
 func (visualiser *Visualiser) visualiseSpecialCase(value any) bool {
 	if token, ok := value.(*lexer.Token); ok {
-		fmt.Fprintf(visualiser.file, "%s(%q, %d:%d)\n", token.Type.Name, token.Src, token.Pos.LineNumber, token.Pos.LineOffset)
+		fmt.Fprintf(visualiser.file, "%s(%q, %d:%d)\n",
+			token.Type.Name, token.Src, token.Pos.LineNumber, token.Pos.LineOffset)
 	} else if error, ok := value.(*lexer.Section); ok {
-		fmt.Fprintf(visualiser.file, "%q, %d:%d\n", error.Src, error.Pos.LineNumber, error.Pos.LineOffset)
+		fmt.Fprintf(visualiser.file, "%q, %d:%d\n",
+			error.Src, error.Pos.LineNumber, error.Pos.LineOffset)
 	} else {
 		return false
 	}
