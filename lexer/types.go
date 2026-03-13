@@ -16,8 +16,8 @@ type Type struct {
 }
 
 var (
-	UnexpectedTokenTypeError = errors.New("UnexpectedTokenTypeError")
-	UnexpectedTokenSrcError  = errors.New("UnexpectedTokenSrcError")
+	UnexpectedTokenTypeError = errors.New("unexpected token type")
+	UnexpectedTokenSrcError  = errors.New("unexpected token source")
 )
 
 // Makes Type implement Matcher interface, checking if the token matches the type
