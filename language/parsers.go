@@ -1,9 +1,17 @@
 package language
 
 import (
+	"errors"
+	"fmt"
+
 	"github.com/zuma206/sb3c/lexer"
 	"github.com/zuma206/sb3c/parser"
 	"github.com/zuma206/sb3c/utils"
+)
+
+var (
+	ClassDeclarationError  = errors.New("class declaration")
+	MethodDeclarationError = errors.New("method declaration")
 )
 
 // Parses a program (AST root)
@@ -36,11 +44,11 @@ func parseClassDeclaration(p *parser.Parser) (*ClassDeclaration, error) {
 		{Matcher: Symbol.WithSource(OpenBrace)},
 		{Matcher: Whitespace, Optional: true},
 	}); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w: %w", ClassDeclarationError, err)
 	}
 	classDeclaration.Declarations, err = parseMethods(p)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w: %w", MethodDeclarationError, err)
 	}
 	return classDeclaration, nil
 }
