@@ -8,11 +8,15 @@ import (
 // Parses a program (AST root)
 func ParseProgram(p *parser.Parser) (*Program, error) {
 	program := &Program{Declarations: utils.NewList[*ClassDeclaration]()}
-	classDeclaration, err := parseClassDeclaration(p)
-	if err != nil {
-		return nil, err
+	for !p.Finished() {
+		p.ConsumeIf(Whitespace)
+		classDeclaration, err := parseClassDeclaration(p)
+		if err != nil {
+			return nil, err
+		}
+		program.Declarations.PushBack(classDeclaration)
+		p.ConsumeIf(Whitespace)
 	}
-	program.Declarations.PushBack(classDeclaration)
 	return program, nil
 }
 
