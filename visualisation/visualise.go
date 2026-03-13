@@ -3,6 +3,7 @@ package visualisation
 import (
 	"fmt"
 	"io"
+	"iter"
 	"os"
 	"reflect"
 
@@ -42,12 +43,12 @@ func (visualiser *Visualiser) visualiseSlice(value any) {
 func (visualiser *Visualiser) visualiseStruct(value any) {
 	valueof := reflect.ValueOf(value)
 	typeof := valueof.Type()
-	visualiser.print(typeof.Name(), " {\n")
+	fmt.Fprint(visualiser.file, typeof.Name(), " {\n")
 	visualiser.indent(func() {
 		for i := range valueof.NumField() {
 			field := typeof.Field(i)
 			if field.IsExported() {
-				visualiser.print(field.Name, ":")
+				visualiser.print(field.Name, ": ")
 				visualiser.visualise(valueof.Field(i).Interface())
 			}
 		}
@@ -60,7 +61,6 @@ func (visualiser *Visualiser) visualisePointer(value any) {
 	if valueof.IsNil() {
 		fmt.Fprint(visualiser.file, "nil")
 	} else {
-		fmt.Fprint(visualiser.file, "*")
 		visualiser.visualiseWithReflection(valueof.Elem().Interface())
 	}
 }
@@ -81,6 +81,21 @@ func (visualiser *Visualiser) visualiseWithReflection(value any) bool {
 	return true
 }
 
+type IterAny interface {
+	IterAny() iter.Seq[any]
+}
+
+func (visualiser *Visualiser) visualiseIterAny(iterAny IterAny) {
+	fmt.Fprint(visualiser.file, reflect.TypeOf(iterAny).Elem().Name(), " {\n")
+	visualiser.indent(func() {
+		for i := range iterAny.IterAny() {
+			visualiser.print()
+			visualiser.visualise(i)
+		}
+	})
+	visualiser.print("}\n")
+}
+
 func (visualiser *Visualiser) visualiseSpecialCase(value any) bool {
 	if token, ok := value.(*lexer.Token); ok {
 		fmt.Fprintf(visualiser.file, "%s(%q, %d:%d)\n",
@@ -88,6 +103,8 @@ func (visualiser *Visualiser) visualiseSpecialCase(value any) bool {
 	} else if error, ok := value.(*lexer.Section); ok {
 		fmt.Fprintf(visualiser.file, "%q, %d:%d\n",
 			error.Src, error.Pos.LineNumber, error.Pos.LineOffset)
+	} else if iterAny, ok := value.(IterAny); ok {
+		visualiser.visualiseIterAny(iterAny)
 	} else {
 		return false
 	}

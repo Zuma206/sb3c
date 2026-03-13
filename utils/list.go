@@ -36,3 +36,14 @@ func (list *List[T]) Iter() iter.Seq[T] {
 		}
 	}
 }
+
+// Implements the IterAny interface
+func (list *List[T]) IterAny() iter.Seq[any] {
+	return func(yield func(any) bool) {
+		for i := range list.Iter() {
+			if ok := yield(i); !ok {
+				return
+			}
+		}
+	}
+}
