@@ -1,6 +1,7 @@
 package language
 
 import (
+	"github.com/zuma206/sb3c/lexer"
 	"github.com/zuma206/sb3c/parser"
 	"github.com/zuma206/sb3c/utils"
 )
@@ -22,7 +23,8 @@ func ParseProgram(p *parser.Parser) (*Program, error) {
 
 func parseClassDeclaration(p *parser.Parser) (*ClassDeclaration, error) {
 	classDeclaration := &ClassDeclaration{Declarations: utils.NewList[*MethodDeclaration]()}
-	if err := p.Parse([]*parser.ParseStep{
+	var err error
+	if err = p.Parse([]*parser.ParseStep{
 		{Matcher: Keyword.WithSource(Class)},
 		{Matcher: Whitespace},
 		{Matcher: Identifier, Result: &classDeclaration.Name},
@@ -33,9 +35,50 @@ func parseClassDeclaration(p *parser.Parser) (*ClassDeclaration, error) {
 		{Matcher: Whitespace, Optional: true},
 		{Matcher: Symbol.WithSource(OpenBrace)},
 		{Matcher: Whitespace, Optional: true},
-		{Matcher: Symbol.WithSource(CloseBrace)},
 	}); err != nil {
 		return nil, err
 	}
+	classDeclaration.Declarations, err = parseMethods(p)
+	if err != nil {
+		return nil, err
+	}
 	return classDeclaration, nil
+}
+
+func parseMethods(p *parser.Parser) (*utils.List[*MethodDeclaration], error) {
+	methods := utils.NewList[*MethodDeclaration]()
+	for true {
+		if _, err := p.ConsumeIf(Symbol.WithSource(CloseBrace)); err == nil {
+			break
+		}
+		method, err := parseMethod(p)
+		if err != nil {
+			return nil, err
+		}
+		methods.PushBack(method)
+	}
+	return methods, nil
+}
+
+func parseMethod(p *parser.Parser) (*MethodDeclaration, error) {
+	method := &MethodDeclaration{
+		Decorators: utils.NewList[*lexer.Token](),
+		Args:       utils.NewList[*lexer.Token](),
+		Body:       utils.NewList[*FunctionCall](),
+	}
+	if err := p.Parse([]*parser.ParseStep{
+		{Matcher: Identifier, Result: &method.Name},
+		{Matcher: Whitespace, Optional: true},
+		{Matcher: Symbol.WithSource(OpenBracket)},
+		{Matcher: Whitespace, Optional: true},
+		{Matcher: Symbol.WithSource(CloseBracket)},
+		{Matcher: Whitespace, Optional: true},
+		{Matcher: Symbol.WithSource(OpenBrace)},
+		{Matcher: Whitespace, Optional: true},
+		{Matcher: Symbol.WithSource(CloseBrace)},
+		{Matcher: Whitespace, Optional: true},
+	}); err != nil {
+		return nil, err
+	}
+	return method, nil
 }
