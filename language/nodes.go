@@ -16,10 +16,10 @@ type ClassDeclaration struct {
 }
 
 type MethodDeclaration struct {
-	Decorators *utils.List[*lexer.Token]
-	Name       *lexer.Token
-	Args       *utils.List[*lexer.Token]
-	Body       *utils.List[*FunctionCall]
+	Decorator *lexer.Token
+	Name      *lexer.Token
+	Args      *utils.List[*lexer.Token]
+	Body      *utils.List[*FunctionCall]
 }
 
 type FunctionCall struct {

@@ -62,11 +62,16 @@ func parseMethods(p *parser.Parser) (*utils.List[*MethodDeclaration], error) {
 
 func parseMethod(p *parser.Parser) (*MethodDeclaration, error) {
 	method := &MethodDeclaration{
-		Decorators: utils.NewList[*lexer.Token](),
-		Args:       utils.NewList[*lexer.Token](),
-		Body:       utils.NewList[*FunctionCall](),
+		Args: utils.NewList[*lexer.Token](),
+		Body: utils.NewList[*FunctionCall](),
+	}
+	if _, err := p.ConsumeIf(Symbol.WithSource(At)); err == nil {
+		if method.Decorator, err = p.ConsumeIf(Identifier); err != nil {
+			return nil, err
+		}
 	}
 	if err := p.Parse([]*parser.ParseStep{
+		{Matcher: Whitespace, Optional: true},
 		{Matcher: Identifier, Result: &method.Name},
 		{Matcher: Whitespace, Optional: true},
 		{Matcher: Symbol.WithSource(OpenBracket)},
