@@ -96,7 +96,7 @@ func (parser *Parser) Parse(steps []*ParseStep) error {
 			if !step.Optional {
 				return err
 			}
-			break
+			continue
 		}
 		if step.Result != nil {
 			*step.Result = token
