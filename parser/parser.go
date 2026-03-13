@@ -104,3 +104,12 @@ func (parser *Parser) Parse(steps []*ParseStep) error {
 	}
 	return nil
 }
+
+// Checks if the current token matches the matcher, without consuming it
+func (parser *Parser) Check(matcher lexer.Matcher) bool {
+	token, err := parser.Peek(0)
+	if err != nil {
+		return false
+	}
+	return matcher.MatchLexToken(token) == nil
+}
