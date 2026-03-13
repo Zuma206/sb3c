@@ -126,13 +126,15 @@ func parseFunctionCall(p *parser.Parser) (*FunctionCall, error) {
 	if err != nil {
 		return nil, err
 	}
-	functionCall := &FunctionCall{
-		Path: path,
-		Args: utils.NewList[*lexer.Token](),
-	}
-	if err := p.Parse([]*parser.ParseStep{
+	functionCall := &FunctionCall{Path: path}
+	if err = p.Parse([]*parser.ParseStep{
 		{Matcher: Symbol.WithSource(OpenBracket)},
 		{Matcher: Whitespace, Optional: true},
+	}); err != nil {
+		return nil, err
+	}
+	functionCall.Args, err = parseCallArgs(p)
+	if err = p.Parse([]*parser.ParseStep{
 		{Matcher: Symbol.WithSource(CloseBracket)},
 		{Matcher: Whitespace, Optional: true},
 		{Matcher: Symbol.WithSource(Semicolon)},
@@ -140,6 +142,23 @@ func parseFunctionCall(p *parser.Parser) (*FunctionCall, error) {
 		return nil, err
 	}
 	return functionCall, nil
+}
+
+func parseCallArgs(p *parser.Parser) (*utils.List[*lexer.Token], error) {
+	args := utils.NewList[*lexer.Token]()
+	for true {
+		p.ConsumeIf(Whitespace)
+		arg, err := p.ConsumeIf(NumberLiteral)
+		if err != nil {
+			return nil, err
+		}
+		args.PushBack(arg)
+		p.ConsumeIf(Whitespace)
+		if _, err := p.ConsumeIf(Symbol.WithSource(Comma)); err != nil {
+			break
+		}
+	}
+	return args, nil
 }
 
 func parsePath(p *parser.Parser) (*utils.List[*lexer.Token], error) {

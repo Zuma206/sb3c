@@ -14,11 +14,12 @@ const (
 	Period       = "."
 	OpenBracket  = "("
 	CloseBracket = ")"
+	Comma        = ","
 )
 
 // Token type sets
 var (
-	Symbols  = []string{OpenBrace, CloseBrace, Equals, Semicolon, At, Period, OpenBracket, CloseBracket}
+	Symbols  = []string{OpenBrace, CloseBrace, Equals, Semicolon, At, Period, OpenBracket, CloseBracket, Comma}
 	Keywords = []string{Class, Extends}
 )
 
