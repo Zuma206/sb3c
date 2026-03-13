@@ -59,7 +59,7 @@ func (visualiser *Visualiser) visualiseStruct(value any) {
 func (visualiser *Visualiser) visualisePointer(value any) {
 	valueof := reflect.ValueOf(value)
 	if valueof.IsNil() {
-		fmt.Fprint(visualiser.file, "nil")
+		fmt.Fprintln(visualiser.file, "nil")
 	} else {
 		visualiser.visualiseWithReflection(valueof.Elem().Interface())
 	}
@@ -97,7 +97,7 @@ func (visualiser *Visualiser) visualiseIterAny(iterAny IterAny) {
 }
 
 func (visualiser *Visualiser) visualiseSpecialCase(value any) bool {
-	if token, ok := value.(*lexer.Token); ok {
+	if token, ok := value.(*lexer.Token); ok && token != nil {
 		fmt.Fprintf(visualiser.file, "%s(%q, %d:%d)\n",
 			token.Type.Name, token.Src, token.Pos.LineNumber, token.Pos.LineOffset)
 	} else if error, ok := value.(*lexer.Section); ok {
