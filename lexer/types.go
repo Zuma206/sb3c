@@ -25,8 +25,8 @@ func (tokenType *Type) MatchLexToken(token *Token) error {
 	if token.Type == tokenType {
 		return nil
 	}
-	return fmt.Errorf("%w: expected %s, found %s",
-		UnexpectedTokenTypeError, tokenType.Name, token.Type.Name)
+	return fmt.Errorf("%w: expected %s, found %s %w",
+		UnexpectedTokenTypeError, tokenType.Name, token.Type.Name, &token.Pos)
 }
 
 // Returns a new matcher that matches on the given source as well as the tokenType
@@ -39,8 +39,8 @@ func (tokenType *Type) WithSource(src string) MatcherFunc {
 		if bytes.Equal(srcBytes, token.Src) {
 			return nil
 		}
-		return fmt.Errorf("%w: expected %q, found %q",
-			UnexpectedTokenSrcError, src, string(token.Src))
+		return fmt.Errorf("%w: expected %q, found %q %w",
+			UnexpectedTokenSrcError, src, string(token.Src), &token.Pos)
 	}
 }
 

@@ -1,5 +1,7 @@
 package lexer
 
+import "fmt"
+
 // Marks a position in a file
 type Position struct {
 	// The byte index into the file
@@ -8,6 +10,11 @@ type Position struct {
 	LineNumber int
 	// The byte index into the line, starting at 1
 	LineOffset int
+}
+
+// Implements the error interface, so positions can be wrapped inside of errors
+func (position *Position) Error() string {
+	return fmt.Sprintf("(@%d:%d)", position.LineNumber, position.LineOffset)
 }
 
 // Represents a section of source code in a file
