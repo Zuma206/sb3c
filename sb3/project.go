@@ -2,8 +2,8 @@ package sb3
 
 // Represents a project.json file
 type Project struct {
-	Meta    Meta     `json:"meta"`
-	Targets []Target `json:"targets"`
+	Meta    Meta      `json:"meta"`
+	Targets []*Target `json:"targets"`
 }
 
 type Meta struct {
