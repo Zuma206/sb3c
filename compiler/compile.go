@@ -3,10 +3,10 @@ package compiler
 import (
 	"os"
 
+	"github.com/zuma206/sb3c/codegen"
 	"github.com/zuma206/sb3c/language"
 	"github.com/zuma206/sb3c/lexer"
 	"github.com/zuma206/sb3c/parser"
-	"github.com/zuma206/sb3c/sb3"
 	"github.com/zuma206/sb3c/visualisation"
 )
 
@@ -24,7 +24,11 @@ func CompileFile(name string, src []byte) error {
 	if err != nil {
 		return err
 	}
-	if _, err := sb3.NewSB3().WriteTo(outfile); err != nil {
+	sb3File, err := codegen.Generate(program)
+	if err != nil {
+		return err
+	}
+	if _, err := sb3File.WriteTo(outfile); err != nil {
 		return err
 	}
 	return nil
