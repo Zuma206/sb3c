@@ -11,12 +11,12 @@ type Meta struct {
 }
 
 type Target struct {
-	IsStage   bool       `json:"isStage"`
-	Name      string     `json:"name"`
-	Blocks    struct{}   `json:"blocks"`
-	Variables struct{}   `json:"variables"`
-	Costumes  []Costume  `json:"costumes"`
-	Sounds    []struct{} `json:"sounds"`
+	IsStage   bool              `json:"isStage"`
+	Name      string            `json:"name"`
+	Blocks    map[string]*Block `json:"blocks"`
+	Variables struct{}          `json:"variables"`
+	Costumes  []Costume         `json:"costumes"`
+	Sounds    []struct{}        `json:"sounds"`
 }
 
 type Asset struct {
@@ -27,4 +27,27 @@ type Asset struct {
 
 type Costume struct {
 	Asset
+}
+
+type Block struct {
+	Opcode   string              `json:"opcode"`
+	Next     *string             `json:"next"`
+	Parent   *string             `json:"parent"`
+	Inputs   map[string]struct{} `json:"inputs"`
+	Fields   struct{}            `json:"fields"`
+	Shadow   bool                `json:"shadow"`
+	TopLevel bool                `json:"topLevel"`
+	X        int                 `json:"x"`
+	Y        int                 `json:"y"`
+	Mutation *Mutation           `json:"mutation"`
+}
+
+type Mutation struct {
+	TagName          string     `json:"tagName"`
+	Children         []struct{} `json:"children"`
+	Proccode         string     `json:"proccode"`
+	Argumentids      []struct{} `json:"argumentids"`
+	Argumentnames    []struct{} `json:"argumentnames"`
+	Argumentdefaults []struct{} `json:"argumentdefaults"`
+	Warp             bool       `json:"warp"`
 }
