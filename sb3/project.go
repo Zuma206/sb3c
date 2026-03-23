@@ -48,8 +48,8 @@ type Mutation struct {
 	TagName          string     `json:"tagName"`
 	Children         []struct{} `json:"children"`
 	Proccode         string     `json:"proccode"`
-	Argumentids      []struct{} `json:"argumentids"`
-	Argumentnames    []struct{} `json:"argumentnames"`
-	Argumentdefaults []struct{} `json:"argumentdefaults"`
+	Argumentids      string     `json:"argumentids"`
+	Argumentnames    string     `json:"argumentnames"`
+	Argumentdefaults string     `json:"argumentdefaults"`
 	Warp             bool       `json:"warp"`
 }
