@@ -31,8 +31,8 @@ type Costume struct {
 
 type Block struct {
 	Opcode   string              `json:"opcode"`
-	Next     *string             `json:"next"`
-	Parent   *string             `json:"parent"`
+	Next     Nullable[string]    `json:"next"`
+	Parent   Nullable[string]    `json:"parent"`
 	Inputs   map[string]struct{} `json:"inputs"`
 	Fields   struct{}            `json:"fields"`
 	Shadow   bool                `json:"shadow"`
