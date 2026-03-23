@@ -1,5 +1,7 @@
 package sb3
 
+import "encoding/json"
+
 // Represents a project.json file
 type Project struct {
 	Meta    Meta      `json:"meta"`
@@ -30,16 +32,16 @@ type Costume struct {
 }
 
 type Block struct {
-	Opcode   string              `json:"opcode"`
-	Next     Nullable[string]    `json:"next"`
-	Parent   Nullable[string]    `json:"parent"`
-	Inputs   map[string]struct{} `json:"inputs"`
-	Fields   struct{}            `json:"fields"`
-	Shadow   bool                `json:"shadow"`
-	TopLevel bool                `json:"topLevel"`
-	X        int                 `json:"x"`
-	Y        int                 `json:"y"`
-	Mutation *Mutation           `json:"mutation"`
+	Opcode   string            `json:"opcode"`
+	Next     Nullable[string]  `json:"next"`
+	Parent   Nullable[string]  `json:"parent"`
+	Inputs   map[string]*Input `json:"inputs"`
+	Fields   struct{}          `json:"fields"`
+	Shadow   bool              `json:"shadow"`
+	TopLevel bool              `json:"topLevel"`
+	X        int               `json:"x"`
+	Y        int               `json:"y"`
+	Mutation *Mutation         `json:"mutation"`
 }
 
 type Mutation struct {
