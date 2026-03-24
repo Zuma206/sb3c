@@ -39,7 +39,7 @@ type Block struct {
 	TopLevel bool              `json:"topLevel"`
 	X        int               `json:"x"`
 	Y        int               `json:"y"`
-	Mutation *Mutation         `json:"mutation"`
+	Mutation *Mutation         `json:"mutation,omitempty"`
 }
 
 type Mutation struct {
