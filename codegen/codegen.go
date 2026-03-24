@@ -3,6 +3,7 @@ package codegen
 import (
 	"errors"
 	"fmt"
+	"iter"
 
 	"github.com/zuma206/sb3c/language"
 	"github.com/zuma206/sb3c/sb3"
@@ -41,9 +42,41 @@ func (cg *CodeGenerator) generate(program *language.Program) error {
 }
 
 func (cg *CodeGenerator) generateStage(class *language.ClassDeclaration) error {
-	_, err := cg.sb3.NewStage(class.Name.Src)
+	stage, err := cg.sb3.NewStage(class.Name.Src)
 	if err != nil {
 		return fmt.Errorf("%w %w", err, &class.Super.Pos)
+	}
+	for method := range class.Declarations.Iter() {
+		if err := cg.generateProcedure(stage, method); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+var (
+	UndefinedMethodErr = errors.New("undefined method")
+	MissingArgumentErr = errors.New("missing argument")
+)
+
+func (cg *CodeGenerator) generateProcedure(target *sb3.TargetHnd, method *language.MethodDeclaration) error {
+	procedure := target.NewProcedure(method.Name.Src)
+	for call := range method.Body.Iter() {
+		mapping, ok := mappings[call.Path.Src]
+		if !ok {
+			return fmt.Errorf("%w: %q %w", UndefinedMethodErr, call.Path.Src, &call.Path.Pos)
+		}
+		block := &sb3.Block{Opcode: mapping.Opcode, Inputs: map[string]*sb3.Input{}}
+		next, stop := iter.Pull(call.Args.Iter())
+		defer stop()
+		for _, input := range mapping.Inputs {
+			arg, ok := next()
+			if !ok {
+				return fmt.Errorf("%w: %q %w", MissingArgumentErr, input, &call.Path.Pos)
+			}
+			block.Inputs[input] = sb3.LiteralInput(&sb3.Literal{Type: sb3.LiteralNumber, Value: arg.Src})
+		}
+		procedure.PushBlock(block)
 	}
 	return nil
 }
