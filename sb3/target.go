@@ -32,12 +32,14 @@ func (hnd *TargetHnd) NewProcedure(proccode string) *ProcedureHnd {
 			Argumentids:      "[]",
 			Argumentnames:    "[]",
 			Argumentdefaults: "[]",
+			Children:         []struct{}{},
 		},
+		Inputs: map[string]*Input{},
 	})
 	definition := procedure.PushBlock(&Block{
 		Opcode: "procedures_definition",
 		Inputs: map[string]*Input{
-			"custom_block": &Input{shadow: prototype.id},
+			"custom_block": {shadow: prototype.id},
 		},
 		TopLevel: true,
 	})
