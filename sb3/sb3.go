@@ -74,12 +74,12 @@ func (sb3 *SB3) newTarget(name string, isStage bool) *Target {
 
 var StageAlreadyExistsError = errors.New("stage already exists")
 
-func (sb3 *SB3) NewStage(name string) (*TargetHnd, error) {
+func (sb3 *SB3) NewStage() (*TargetHnd, error) {
 	if sb3.stage != nil {
 		return nil, StageAlreadyExistsError
 	}
 	sb3.stage = &TargetHnd{
-		target: sb3.newTarget(name, true),
+		target: sb3.newTarget("Stage", true),
 		sb3:    sb3,
 	}
 	return sb3.stage, nil

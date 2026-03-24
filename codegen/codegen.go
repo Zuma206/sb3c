@@ -42,7 +42,7 @@ func (cg *CodeGenerator) generate(program *language.Program) error {
 }
 
 func (cg *CodeGenerator) generateStage(class *language.ClassDeclaration) error {
-	stage, err := cg.sb3.NewStage(class.Name.Src)
+	stage, err := cg.sb3.NewStage()
 	if err != nil {
 		return fmt.Errorf("%w %w", err, &class.Super.Pos)
 	}
