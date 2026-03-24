@@ -62,11 +62,20 @@ func (sb3 *SB3) writeProjectJson(sb3File *zip.Writer) error {
 
 func (sb3 *SB3) newTarget(name string, isStage bool) *Target {
 	target := &Target{
-		IsStage:  isStage,
-		Name:     name,
-		Costumes: []Costume{},
-		Sounds:   []struct{}{},
-		Blocks:   map[string]*Block{},
+		IsStage: isStage,
+		Name:    name,
+		Costumes: []Costume{
+			{
+				Asset: Asset{
+					Name:       "backdrop1",
+					DataFormat: "svg",
+					AssetId:    "cd21514d0531fdffb22204e0ec5ed84a",
+					Md5ext:     "cd21514d0531fdffb22204e0ec5ed84a.svg",
+				},
+			},
+		},
+		Sounds: []struct{}{},
+		Blocks: map[string]*Block{},
 	}
 	sb3.project.Targets = append(sb3.project.Targets, target)
 	return target

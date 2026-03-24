@@ -23,10 +23,13 @@ type Asset struct {
 	Name       string `json:"name"`
 	AssetId    string `json:"assetId"`
 	DataFormat string `json:"dataFormat"`
+	Md5ext     string `json:"md5ext"`
 }
 
 type Costume struct {
 	Asset
+	RotationCenterX int `json:"rotationCenterX"`
+	RotationCenterY int `json:"rotationCenterY"`
 }
 
 type Block struct {
