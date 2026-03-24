@@ -14,5 +14,5 @@ func Main() error {
 	if err != nil {
 		return err
 	}
-	return CompileFile(args.Target, src)
+	return CompileFile(args.Target, string(src))
 }

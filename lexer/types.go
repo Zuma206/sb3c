@@ -1,7 +1,6 @@
 package lexer
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"regexp"
@@ -31,12 +30,11 @@ func (tokenType *Type) MatchLexToken(token *Token) error {
 
 // Returns a new matcher that matches on the given source as well as the tokenType
 func (tokenType *Type) WithSource(src string) MatcherFunc {
-	srcBytes := []byte(src)
 	return func(token *Token) error {
 		if err := tokenType.MatchLexToken(token); err != nil {
 			return err
 		}
-		if bytes.Equal(srcBytes, token.Src) {
+		if src == token.Src {
 			return nil
 		}
 		return fmt.Errorf("%w: expected %q, found %q %w",

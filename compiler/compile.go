@@ -10,7 +10,7 @@ import (
 	"github.com/zuma206/sb3c/visualisation"
 )
 
-func CompileFile(name string, src []byte) error {
+func CompileFile(name string, src string) error {
 	lex := lexer.NewLexer(src, language.Types)
 	visualisation.Visualise(lex.GetErrors())
 	visualisation.Visualise(lex.GetTokens())

@@ -3,6 +3,7 @@ package lexer
 import (
 	"errors"
 	"fmt"
+	"strings"
 )
 
 // Lexes a file into a list of tokens and errors
@@ -12,18 +13,19 @@ type Lexer struct {
 	// Lex tokens parsed so far
 	tokens []*Token
 	// The current error being encountered by the lexer
-	error *Section
+	error    *Section
+	errorSrc strings.Builder
 	// The types of tokens the lexer can parse
 	types []*Type
 	// The current working position of the lexer in the file
 	pos Position
 	// The source code being lexed
-	src []byte
+	src string
 	// The index of the next token to be processed
 	next int
 }
 
-func NewLexer(src []byte, types []*Type) *Lexer {
+func NewLexer(src string, types []*Type) *Lexer {
 	return &Lexer{
 		errors: make([]*Section, 0),
 		tokens: make([]*Token, 0),
@@ -54,7 +56,7 @@ func (lexer *Lexer) newToken(tokenType *Type, len int) *Token {
 func (lexer *Lexer) getLongestMatch() (*Token, bool) {
 	var token *Token
 	for _, tokenType := range lexer.types {
-		pos := tokenType.regex.FindSubmatchIndex(lexer.src[lexer.pos.Index:])
+		pos := tokenType.regex.FindStringSubmatchIndex(lexer.src[lexer.pos.Index:])
 		if pos != nil && (token == nil || len(token.Src) < pos[1]) {
 			token = lexer.newToken(tokenType, pos[1])
 		}
@@ -66,7 +68,7 @@ func (lexer *Lexer) getLongestMatch() (*Token, bool) {
 }
 
 // Consumes source code, incrementing the lexer position past it
-func (lexer *Lexer) consume(src []byte) {
+func (lexer *Lexer) consume(src string) {
 	lexer.pos.LineOffset += len(src)
 	lexer.pos.Index += len(src)
 	for _, char := range src {
@@ -79,18 +81,19 @@ func (lexer *Lexer) consume(src []byte) {
 
 // Consumes source code into the current error
 func (lexer *Lexer) consumeIntoError() {
-	src := []byte{lexer.src[lexer.pos.Index]}
 	if lexer.error == nil {
-		lexer.error = &Section{Pos: lexer.pos, Src: src}
-	} else {
-		lexer.error.Src = append(lexer.error.Src, lexer.src[lexer.pos.Index])
+		lexer.error = &Section{Pos: lexer.pos}
+		lexer.errorSrc = strings.Builder{}
 	}
+	src := string(lexer.src[lexer.pos.Index])
+	lexer.errorSrc.WriteString(src)
 	lexer.consume(src)
 }
 
 // Consumes the current error into the errors slice
 func (lexer *Lexer) consumeError() {
 	if lexer.error != nil {
+		lexer.error.Src = lexer.errorSrc.String()
 		lexer.errors = append(lexer.errors, lexer.error)
 		lexer.error = nil
 	}

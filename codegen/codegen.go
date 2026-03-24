@@ -28,21 +28,20 @@ const (
 
 func (cg *CodeGenerator) generate(program *language.Program) error {
 	for declaration := range program.Declarations.Iter() {
-		super := string(declaration.Super.Src)
-		switch super {
+		switch declaration.Super.Src {
 		case StageClass:
 			if err := cg.generateStage(declaration); err != nil {
 				return err
 			}
 		default:
-			return fmt.Errorf("%w: %q", InvalidSuperError, super)
+			return fmt.Errorf("%w: %q", InvalidSuperError, declaration.Super.Src)
 		}
 	}
 	return nil
 }
 
 func (cg *CodeGenerator) generateStage(class *language.ClassDeclaration) error {
-	_, err := cg.sb3.NewStage(string(class.Name.Src))
+	_, err := cg.sb3.NewStage(class.Name.Src)
 	if err != nil {
 		return fmt.Errorf("%w %w", err, &class.Super.Pos)
 	}

@@ -1,7 +1,5 @@
 package sb3
 
-import "encoding/json"
-
 // Represents a project.json file
 type Project struct {
 	Meta    Meta      `json:"meta"`

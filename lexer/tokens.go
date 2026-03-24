@@ -22,7 +22,7 @@ type Section struct {
 	// The start positon of the section
 	Pos Position
 	// The source code of the section
-	Src []byte
+	Src string
 }
 
 // Represents a lex token
