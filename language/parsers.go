@@ -122,12 +122,10 @@ func parseFunctionCalls(p *parser.Parser) (*utils.List[*FunctionCall], error) {
 }
 
 func parseFunctionCall(p *parser.Parser) (*FunctionCall, error) {
-	path, err := parsePath(p)
-	if err != nil {
-		return nil, err
-	}
-	functionCall := &FunctionCall{Path: path}
+	functionCall := &FunctionCall{}
+	var err error
 	if err = p.Parse([]*parser.ParseStep{
+		{Matcher: Path, Result: &functionCall.Path},
 		{Matcher: Symbol.WithSource(OpenBracket)},
 		{Matcher: Whitespace, Optional: true},
 	}); err != nil {
@@ -159,19 +157,4 @@ func parseCallArgs(p *parser.Parser) (*utils.List[*lexer.Token], error) {
 		}
 	}
 	return args, nil
-}
-
-func parsePath(p *parser.Parser) (*utils.List[*lexer.Token], error) {
-	path := utils.NewList[*lexer.Token]()
-	for true {
-		identifier, err := p.ConsumeIf(Identifier)
-		if err != nil {
-			return nil, err
-		}
-		path.PushBack(identifier)
-		if _, err := p.ConsumeIf(Symbol.WithSource(Period)); err != nil {
-			break
-		}
-	}
-	return path, nil
 }

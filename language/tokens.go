@@ -27,9 +27,10 @@ var (
 var (
 	NumberLiteral = lexer.NewType("NumberLiteral", `[0-9]([0-9_]*[0-9])?`)
 	Identifier    = lexer.NewType("Identifier", `[A-z$_][0-z$_]*`)
+	Path          = lexer.NewType("Path", `[A-z$_](\.?[0-z$_])*`)
 	Whitespace    = lexer.NewType("Whitespace", `[\n\r\t\ ]+`)
 	Keyword       = lexer.NewTypeSet("Keyword", Keywords)
 	Symbol        = lexer.NewTypeSet("Symbol", Symbols)
 )
 
-var Types = []*lexer.Type{Symbol, Keyword, Identifier, Whitespace, NumberLiteral}
+var Types = []*lexer.Type{Symbol, Keyword, Identifier, Path, Whitespace, NumberLiteral}

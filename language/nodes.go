@@ -23,6 +23,6 @@ type MethodDeclaration struct {
 }
 
 type FunctionCall struct {
-	Path *utils.List[*lexer.Token]
+	Path *lexer.Token
 	Args *utils.List[*lexer.Token]
 }
