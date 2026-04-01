@@ -16,24 +16,24 @@ var (
 
 // Parses a program (AST root)
 func ParseProgram(p *parser.Parser) (*Program, error) {
-	program := &Program{Declarations: utils.NewList[*ClassDeclaration]()}
+	program := &Program{Classes: utils.NewList[*Class]()}
 	for !p.Finished() {
 		p.ConsumeIf(Whitespace)
 		classDeclaration, err := parseClassDeclaration(p)
 		if err != nil {
 			return nil, err
 		}
-		program.Declarations.PushBack(classDeclaration)
+		program.Classes.PushBack(classDeclaration)
 		p.ConsumeIf(Whitespace)
 	}
 	return program, nil
 }
 
-func parseClassDeclaration(p *parser.Parser) (*ClassDeclaration, error) {
-	classDeclaration := &ClassDeclaration{Declarations: utils.NewList[*MethodDeclaration]()}
+func parseClassDeclaration(p *parser.Parser) (*Class, error) {
+	classDeclaration := &Class{Members: utils.NewList[*Method]()}
 	var err error
 	if err = p.Parse([]*parser.ParseStep{
-		{Matcher: Keyword.WithSource(Class)},
+		{Matcher: Keyword.WithSource(ClassKeyword)},
 		{Matcher: Whitespace},
 		{Matcher: Identifier, Result: &classDeclaration.Name},
 		{Matcher: Whitespace},
@@ -46,15 +46,15 @@ func parseClassDeclaration(p *parser.Parser) (*ClassDeclaration, error) {
 	}); err != nil {
 		return nil, fmt.Errorf("%w: %w", ClassDeclarationError, err)
 	}
-	classDeclaration.Declarations, err = parseMethods(p)
+	classDeclaration.Members, err = parseMethods(p)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", MethodDeclarationError, err)
 	}
 	return classDeclaration, nil
 }
 
-func parseMethods(p *parser.Parser) (*utils.List[*MethodDeclaration], error) {
-	methods := utils.NewList[*MethodDeclaration]()
+func parseMethods(p *parser.Parser) (*utils.List[*Method], error) {
+	methods := utils.NewList[*Method]()
 	for true {
 		p.ConsumeIf(Whitespace)
 		if _, err := p.ConsumeIf(Symbol.WithSource(CloseBrace)); err == nil {
@@ -69,11 +69,10 @@ func parseMethods(p *parser.Parser) (*utils.List[*MethodDeclaration], error) {
 	return methods, nil
 }
 
-func parseMethod(p *parser.Parser) (*MethodDeclaration, error) {
-	method := &MethodDeclaration{
+func parseMethod(p *parser.Parser) (*Method, error) {
+	method := &Method{
 		Decorator: parseOptionalDecorator(p),
 		Args:      utils.NewList[*lexer.Token](),
-		Body:      utils.NewList[*FunctionCall](),
 	}
 	var err error
 	if err = p.Parse([]*parser.ParseStep{
@@ -89,7 +88,7 @@ func parseMethod(p *parser.Parser) (*MethodDeclaration, error) {
 	}); err != nil {
 		return nil, err
 	}
-	method.Body, err = parseFunctionCalls(p)
+	method.Calls, err = parseCalls(p)
 	if err != nil {
 		return nil, err
 	}
@@ -105,14 +104,14 @@ func parseOptionalDecorator(p *parser.Parser) *lexer.Token {
 	return nil
 }
 
-func parseFunctionCalls(p *parser.Parser) (*utils.List[*FunctionCall], error) {
-	functionCalls := utils.NewList[*FunctionCall]()
+func parseCalls(p *parser.Parser) (*utils.List[*Call], error) {
+	functionCalls := utils.NewList[*Call]()
 	for true {
 		p.ConsumeIf(Whitespace)
 		if _, err := p.ConsumeIf(Symbol.WithSource(CloseBrace)); err == nil {
 			break
 		}
-		functionCall, err := parseFunctionCall(p)
+		functionCall, err := parseCall(p)
 		if err != nil {
 			return nil, err
 		}
@@ -121,17 +120,17 @@ func parseFunctionCalls(p *parser.Parser) (*utils.List[*FunctionCall], error) {
 	return functionCalls, nil
 }
 
-func parseFunctionCall(p *parser.Parser) (*FunctionCall, error) {
-	functionCall := &FunctionCall{}
+func parseCall(p *parser.Parser) (*Call, error) {
+	call := &Call{}
 	var err error
 	if err = p.Parse([]*parser.ParseStep{
-		{Matcher: Path, Result: &functionCall.Path},
+		{Matcher: Path, Result: &call.Path},
 		{Matcher: Symbol.WithSource(OpenBracket)},
 		{Matcher: Whitespace, Optional: true},
 	}); err != nil {
 		return nil, err
 	}
-	functionCall.Args, err = parseCallArgs(p)
+	call.Args, err = parseCallArgs(p)
 	if err = p.Parse([]*parser.ParseStep{
 		{Matcher: Symbol.WithSource(CloseBracket)},
 		{Matcher: Whitespace, Optional: true},
@@ -139,7 +138,7 @@ func parseFunctionCall(p *parser.Parser) (*FunctionCall, error) {
 	}); err != nil {
 		return nil, err
 	}
-	return functionCall, nil
+	return call, nil
 }
 
 func parseCallArgs(p *parser.Parser) (*utils.List[*lexer.Token], error) {

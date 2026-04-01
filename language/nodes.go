@@ -6,23 +6,23 @@ import (
 )
 
 type Program struct {
-	Declarations *utils.List[*ClassDeclaration]
+	Classes *utils.List[*Class]
 }
 
-type ClassDeclaration struct {
-	Name         *lexer.Token
-	Super        *lexer.Token
-	Declarations *utils.List[*MethodDeclaration]
+type Class struct {
+	Name    *lexer.Token
+	Super   *lexer.Token
+	Members *utils.List[*Method]
 }
 
-type MethodDeclaration struct {
+type Method struct {
 	Decorator *lexer.Token
 	Name      *lexer.Token
 	Args      *utils.List[*lexer.Token]
-	Body      *utils.List[*FunctionCall]
+	Calls     *utils.List[*Call]
 }
 
-type FunctionCall struct {
+type Call struct {
 	Path *lexer.Token
 	Args *utils.List[*lexer.Token]
 }

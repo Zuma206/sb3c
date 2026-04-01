@@ -28,7 +28,7 @@ const (
 )
 
 func (cg *CodeGenerator) generate(program *language.Program) error {
-	for declaration := range program.Declarations.Iter() {
+	for declaration := range program.Classes.Iter() {
 		switch declaration.Super.Src {
 		case StageClass:
 			if err := cg.generateStage(declaration); err != nil {
@@ -41,12 +41,12 @@ func (cg *CodeGenerator) generate(program *language.Program) error {
 	return nil
 }
 
-func (cg *CodeGenerator) generateStage(class *language.ClassDeclaration) error {
+func (cg *CodeGenerator) generateStage(class *language.Class) error {
 	stage, err := cg.sb3.NewStage()
 	if err != nil {
 		return fmt.Errorf("%w %w", err, &class.Super.Pos)
 	}
-	for method := range class.Declarations.Iter() {
+	for method := range class.Members.Iter() {
 		if err := cg.generateProcedure(stage, method); err != nil {
 			return err
 		}
@@ -59,9 +59,9 @@ var (
 	MissingArgumentErr = errors.New("missing argument")
 )
 
-func (cg *CodeGenerator) generateProcedure(target *sb3.TargetHnd, method *language.MethodDeclaration) error {
+func (cg *CodeGenerator) generateProcedure(target *sb3.TargetHnd, method *language.Method) error {
 	procedure := target.NewProcedure(method.Name.Src)
-	for call := range method.Body.Iter() {
+	for call := range method.Calls.Iter() {
 		mapping, ok := mappings[call.Path.Src]
 		if !ok {
 			return fmt.Errorf("%w: %q %w", UndefinedMethodErr, call.Path.Src, &call.Path.Pos)

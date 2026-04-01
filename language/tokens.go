@@ -6,7 +6,7 @@ import "github.com/zuma206/sb3c/lexer"
 const (
 	OpenBrace    = "{"
 	CloseBrace   = "}"
-	Class        = "class"
+	ClassKeyword = "class"
 	Extends      = "extends"
 	Equals       = "="
 	Semicolon    = ";"
@@ -20,7 +20,7 @@ const (
 // Token type sets
 var (
 	Symbols  = []string{OpenBrace, CloseBrace, Equals, Semicolon, At, Period, OpenBracket, CloseBracket, Comma}
-	Keywords = []string{Class, Extends}
+	Keywords = []string{ClassKeyword, Extends}
 )
 
 // Token types
