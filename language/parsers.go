@@ -2,7 +2,6 @@ package language
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/zuma206/sb3c/lexer"
 	"github.com/zuma206/sb3c/parser"
@@ -41,7 +40,7 @@ func parseClass(p *parser.Parser) (*Class, error) {
 		{Matcher: Symbol.WithSource(OpenBrace)},
 		{Matcher: Whitespace, Optional: true},
 	}); err != nil {
-		return nil, fmt.Errorf("%w: %w", ClassHeaderError, err)
+		return nil, errors.Join(ClassHeaderError, err)
 	}
 	class.Members, err = parseMembers(p)
 	if err != nil {
@@ -84,7 +83,7 @@ func parseCommonMember(p *parser.Parser) (*Member, error) {
 		{Matcher: Identifier, Result: &member.Name},
 		{Matcher: Whitespace, Optional: true},
 	}); err != nil {
-		return nil, fmt.Errorf("%w: %w", MemberNameErr, err)
+		return nil, errors.Join(MemberNameErr, err)
 	}
 	return member, nil
 }
@@ -95,7 +94,7 @@ func parseMemberValue(p *parser.Parser) (MemberValue, error) {
 	symbol, err := p.ConsumeIf(lexer.MatchAny(Symbol.WithSource(Equals), Symbol.WithSource(OpenBracket)))
 	value := MemberValue{}
 	if err != nil {
-		return value, fmt.Errorf("%w: %w", MemberSymbolErr, err)
+		return value, errors.Join(MemberSymbolErr, err)
 	}
 	switch symbol.Src {
 	case Equals:
@@ -119,7 +118,7 @@ func parseAttribute(p *parser.Parser) (*Attribute, error) {
 		{Matcher: Whitespace, Optional: true},
 		{Matcher: Symbol.WithSource(Semicolon)},
 	}); err != nil {
-		return nil, fmt.Errorf("%w: %w", AttributeErr, err)
+		return nil, errors.Join(AttributeErr, err)
 	}
 	return attribute, nil
 }
@@ -173,7 +172,7 @@ func parseCalls(p *parser.Parser) (*utils.List[*Call], error) {
 			return nil, err
 		}
 		if _, err := p.ConsumeIf(Symbol.WithSource(Semicolon)); err != nil {
-			return nil, fmt.Errorf("%w: %w", CallSemicolonErr, err)
+			return nil, errors.Join(CallSemicolonErr, err)
 		}
 		functionCalls.PushBack(functionCall)
 	}
@@ -193,7 +192,7 @@ func parseCall(p *parser.Parser) (*Call, error) {
 		{Matcher: Symbol.WithSource(OpenBracket)},
 		{Matcher: Whitespace, Optional: true},
 	}); err != nil {
-		return nil, fmt.Errorf("%w: %w", CallErr, err)
+		return nil, errors.Join(CallErr, err)
 	}
 	call.Args, err = parseCallArgs(p)
 	if err != nil {
@@ -202,7 +201,7 @@ func parseCall(p *parser.Parser) (*Call, error) {
 	if err = p.Parse([]*parser.ParseStep{
 		{Matcher: Symbol.WithSource(CloseBracket)},
 	}); err != nil {
-		return nil, fmt.Errorf("%w: %w", CallCloseErr, err)
+		return nil, errors.Join(CallCloseErr, err)
 	}
 	return call, nil
 }

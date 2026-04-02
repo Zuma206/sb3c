@@ -2,7 +2,6 @@ package lexer
 
 import (
 	"errors"
-	"fmt"
 )
 
 // A matcher takes in a token and performs validation/matching on it
@@ -29,6 +28,6 @@ func MatchAny(matchers ...Matcher) Matcher {
 				return nil
 			}
 		}
-		return fmt.Errorf("%w: %w", MatchAnyErr, err)
+		return errors.Join(MatchAnyErr, err)
 	})
 }

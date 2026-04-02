@@ -24,8 +24,8 @@ func (tokenType *Type) MatchLexToken(token *Token) error {
 	if token.Type == tokenType {
 		return nil
 	}
-	return fmt.Errorf("%w: expected %s, found %s %w",
-		UnexpectedTokenTypeError, tokenType.Name, token.Type.Name, &token.Pos)
+	err := fmt.Errorf("expected %s, found %s %w", tokenType.Name, token.Type.Name, &token.Pos)
+	return errors.Join(UnexpectedTokenTypeError, err)
 }
 
 // Returns a new matcher that matches on the given source as well as the tokenType
