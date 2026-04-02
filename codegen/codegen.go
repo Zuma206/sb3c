@@ -59,9 +59,9 @@ var (
 	MissingArgumentErr = errors.New("missing argument")
 )
 
-func (cg *CodeGenerator) generateProcedure(target *sb3.TargetHnd, method *language.Method) error {
+func (cg *CodeGenerator) generateProcedure(target *sb3.TargetHnd, method *language.Member) error {
 	procedure := target.NewProcedure(method.Name.Src)
-	for call := range method.Calls.Iter() {
+	for call := range method.Value.Method.Calls.Iter() {
 		mapping, ok := mappings[call.Path.Src]
 		if !ok {
 			return fmt.Errorf("%w: %q %w", UndefinedMethodErr, call.Path.Src, &call.Path.Pos)

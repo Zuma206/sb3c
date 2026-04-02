@@ -12,14 +12,27 @@ type Program struct {
 type Class struct {
 	Name    *lexer.Token
 	Super   *lexer.Token
-	Members *utils.List[*Method]
+	Members *utils.List[*Member]
+}
+
+type Member struct {
+	Decorators *utils.List[*Call]
+	Name       *lexer.Token
+	Value      MemberValue
+}
+
+type MemberValue struct {
+	Attribute *Attribute
+	Method    *Method
 }
 
 type Method struct {
-	Decorator *lexer.Token
-	Name      *lexer.Token
-	Args      *utils.List[*lexer.Token]
-	Calls     *utils.List[*Call]
+	Args  *utils.List[*lexer.Token]
+	Calls *utils.List[*Call]
+}
+
+type Attribute struct {
+	Initializer *lexer.Token
 }
 
 type Call struct {

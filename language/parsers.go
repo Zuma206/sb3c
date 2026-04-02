@@ -10,8 +10,8 @@ import (
 )
 
 var (
-	ClassDeclarationError  = errors.New("class declaration")
-	MethodDeclarationError = errors.New("method declaration")
+	ClassError  = errors.New("class error")
+	MemberError = errors.New("member error")
 )
 
 // Parses a program (AST root)
@@ -19,67 +19,112 @@ func ParseProgram(p *parser.Parser) (*Program, error) {
 	program := &Program{Classes: utils.NewList[*Class]()}
 	for !p.Finished() {
 		p.ConsumeIf(Whitespace)
-		classDeclaration, err := parseClassDeclaration(p)
+		class, err := parseClass(p)
 		if err != nil {
 			return nil, err
 		}
-		program.Classes.PushBack(classDeclaration)
+		program.Classes.PushBack(class)
 		p.ConsumeIf(Whitespace)
 	}
 	return program, nil
 }
 
-func parseClassDeclaration(p *parser.Parser) (*Class, error) {
-	classDeclaration := &Class{Members: utils.NewList[*Method]()}
+func parseClass(p *parser.Parser) (*Class, error) {
+	class := &Class{}
 	var err error
 	if err = p.Parse([]*parser.ParseStep{
 		{Matcher: Keyword.WithSource(ClassKeyword)},
 		{Matcher: Whitespace},
-		{Matcher: Identifier, Result: &classDeclaration.Name},
+		{Matcher: Identifier, Result: &class.Name},
 		{Matcher: Whitespace},
 		{Matcher: Keyword.WithSource(Extends)},
 		{Matcher: Whitespace},
-		{Matcher: Identifier, Result: &classDeclaration.Super},
+		{Matcher: Identifier, Result: &class.Super},
 		{Matcher: Whitespace, Optional: true},
 		{Matcher: Symbol.WithSource(OpenBrace)},
 		{Matcher: Whitespace, Optional: true},
 	}); err != nil {
-		return nil, fmt.Errorf("%w: %w", ClassDeclarationError, err)
+		return nil, fmt.Errorf("%w: %w", ClassError, err)
 	}
-	classDeclaration.Members, err = parseMethods(p)
+	class.Members, err = parseMembers(p)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %w", MethodDeclarationError, err)
+		return nil, fmt.Errorf("%w: %w", MemberError, err)
 	}
-	return classDeclaration, nil
+	return class, nil
 }
 
-func parseMethods(p *parser.Parser) (*utils.List[*Method], error) {
-	methods := utils.NewList[*Method]()
-	for true {
+func parseMembers(p *parser.Parser) (*utils.List[*Member], error) {
+	members := utils.NewList[*Member]()
+	for {
 		p.ConsumeIf(Whitespace)
 		if _, err := p.ConsumeIf(Symbol.WithSource(CloseBrace)); err == nil {
 			break
 		}
-		method, err := parseMethod(p)
+		member, err := parseCommonMember(p)
 		if err != nil {
 			return nil, err
 		}
-		methods.PushBack(method)
+		member.Value, err = parseMemberValue(p)
+		if err != nil {
+			return nil, err
+		}
+		members.PushBack(member)
 	}
-	return methods, nil
+	return members, nil
+}
+
+func parseCommonMember(p *parser.Parser) (*Member, error) {
+	member := &Member{}
+	var err error
+	member.Decorators, err = parseDecorators(p)
+	if err != nil {
+		return nil, err
+	}
+	if err = p.Parse([]*parser.ParseStep{
+		{Matcher: Whitespace, Optional: true},
+		{Matcher: Identifier, Result: &member.Name},
+		{Matcher: Whitespace, Optional: true},
+	}); err != nil {
+		return nil, err
+	}
+	return member, nil
+}
+
+func parseMemberValue(p *parser.Parser) (MemberValue, error) {
+	symbol, err := p.ConsumeIf(lexer.MatchAny(Symbol.WithSource(Equals), Symbol.WithSource(OpenBracket)))
+	value := MemberValue{}
+	if err != nil {
+		return value, nil
+	}
+	switch symbol.Src {
+	case Equals:
+		value.Attribute, err = parseAttribute(p)
+	case OpenBracket:
+		value.Method, err = parseMethod(p)
+	default:
+		// If this panic triggers, check the switch statement has a case for every lexer.MatchAny param
+		panic("class member parsed invalid symbol as correct")
+	}
+	return value, err
+}
+
+func parseAttribute(p *parser.Parser) (*Attribute, error) {
+	attribute := &Attribute{}
+	if err := p.Parse([]*parser.ParseStep{
+		{Matcher: Whitespace, Optional: true},
+		{Matcher: NumberLiteral, Result: &attribute.Initializer, Optional: true},
+		{Matcher: Whitespace, Optional: true},
+		{Matcher: Symbol.WithSource(Semicolon)},
+	}); err != nil {
+		return nil, err
+	}
+	return attribute, nil
 }
 
 func parseMethod(p *parser.Parser) (*Method, error) {
-	method := &Method{
-		Decorator: parseOptionalDecorator(p),
-		Args:      utils.NewList[*lexer.Token](),
-	}
+	method := &Method{Args: utils.NewList[*lexer.Token]()}
 	var err error
 	if err = p.Parse([]*parser.ParseStep{
-		{Matcher: Whitespace, Optional: true},
-		{Matcher: Identifier, Result: &method.Name},
-		{Matcher: Whitespace, Optional: true},
-		{Matcher: Symbol.WithSource(OpenBracket)},
 		{Matcher: Whitespace, Optional: true},
 		{Matcher: Symbol.WithSource(CloseBracket)},
 		{Matcher: Whitespace, Optional: true},
@@ -95,13 +140,20 @@ func parseMethod(p *parser.Parser) (*Method, error) {
 	return method, nil
 }
 
-func parseOptionalDecorator(p *parser.Parser) *lexer.Token {
-	if _, err := p.ConsumeIf(Symbol.WithSource(At)); err == nil {
-		if decorator, err := p.ConsumeIf(Identifier); err != nil {
-			return decorator
+func parseDecorators(p *parser.Parser) (*utils.List[*Call], error) {
+	decorators := utils.NewList[*Call]()
+	for {
+		p.ConsumeIf(Whitespace)
+		if _, err := p.ConsumeIf(Symbol.WithSource(At)); err != nil {
+			break
 		}
+		decorator, err := parseCall(p)
+		if err != nil {
+			return nil, err
+		}
+		decorators.PushBack(decorator)
 	}
-	return nil
+	return decorators, nil
 }
 
 func parseCalls(p *parser.Parser) (*utils.List[*Call], error) {
@@ -113,6 +165,9 @@ func parseCalls(p *parser.Parser) (*utils.List[*Call], error) {
 		}
 		functionCall, err := parseCall(p)
 		if err != nil {
+			return nil, err
+		}
+		if _, err := p.ConsumeIf(Symbol.WithSource(Semicolon)); err != nil {
 			return nil, err
 		}
 		functionCalls.PushBack(functionCall)
@@ -131,10 +186,11 @@ func parseCall(p *parser.Parser) (*Call, error) {
 		return nil, err
 	}
 	call.Args, err = parseCallArgs(p)
+	if err != nil {
+		return nil, err
+	}
 	if err = p.Parse([]*parser.ParseStep{
 		{Matcher: Symbol.WithSource(CloseBracket)},
-		{Matcher: Whitespace, Optional: true},
-		{Matcher: Symbol.WithSource(Semicolon)},
 	}); err != nil {
 		return nil, err
 	}
@@ -143,7 +199,7 @@ func parseCall(p *parser.Parser) (*Call, error) {
 
 func parseCallArgs(p *parser.Parser) (*utils.List[*lexer.Token], error) {
 	args := utils.NewList[*lexer.Token]()
-	for true {
+	for !p.Check(Symbol.WithSource(CloseBracket)) {
 		p.ConsumeIf(Whitespace)
 		arg, err := p.ConsumeIf(NumberLiteral)
 		if err != nil {

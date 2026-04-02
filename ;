@@ -1,0 +1,10 @@
+class MyStage extends Stage {
+  playerStart() {
+    this.motion.moveSteps(20);
+    this.motion.moveSteps(40);
+  }
+
+  @scratch.whenGreenFlagClicked() anotherMethod() {
+    this.motion.moveSteps(60);
+  }
+}
