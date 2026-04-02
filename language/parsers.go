@@ -91,7 +91,8 @@ func parseCommonMember(p *parser.Parser) (*Member, error) {
 var MemberSymbolErr = errors.New("invalid member symbol")
 
 func parseMemberValue(p *parser.Parser) (MemberValue, error) {
-	symbol, err := p.ConsumeIf(lexer.MatchAny(Symbol.WithSource(Equals), Symbol.WithSource(OpenBracket)))
+	symbol, err := p.ConsumeIf(lexer.MatchAny(
+		Symbol.WithSource(Equals), Symbol.WithSource(Semicolon), Symbol.WithSource(OpenBracket)))
 	value := MemberValue{}
 	if err != nil {
 		return value, errors.Join(MemberSymbolErr, err)
@@ -99,6 +100,8 @@ func parseMemberValue(p *parser.Parser) (MemberValue, error) {
 	switch symbol.Src {
 	case Equals:
 		value.Attribute, err = parseAttribute(p)
+	case Semicolon:
+		value.Attribute = &Attribute{}
 	case OpenBracket:
 		value.Method, err = parseMethod(p)
 	default:
