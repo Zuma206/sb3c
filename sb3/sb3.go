@@ -74,8 +74,9 @@ func (sb3 *SB3) newTarget(name string, isStage bool) *Target {
 				},
 			},
 		},
-		Sounds: []struct{}{},
-		Blocks: map[string]*Block{},
+		Sounds:    []struct{}{},
+		Blocks:    map[string]*Block{},
+		Variables: map[string]*Variable{},
 	}
 	sb3.project.Targets = append(sb3.project.Targets, target)
 	return target

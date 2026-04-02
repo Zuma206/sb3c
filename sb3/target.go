@@ -47,6 +47,12 @@ func (hnd *TargetHnd) NewProcedure(proccode string) *ProcedureHnd {
 	return procedure
 }
 
+func (hnd *TargetHnd) NewVariable(name string, value any) string {
+	id := generateId() + "-" + name
+	hnd.target.Variables[id] = &Variable{Name: name, Value: value}
+	return id
+}
+
 func (hnd *ProcedureHnd) PushBlock(block *Block) *RegisteredBlock {
 	registeredBlock := hnd.target.registerBlock(block)
 	if hnd.tail != nil {
