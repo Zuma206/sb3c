@@ -191,7 +191,7 @@ func parseCall(p *parser.Parser) (*Call, error) {
 	call := &Call{}
 	var err error
 	if err = p.Parse([]*parser.ParseStep{
-		{Matcher: Path, Result: &call.Path},
+		{Matcher: lexer.MatchAny(Path, Identifier), Result: &call.Path},
 		{Matcher: Symbol.WithSource(OpenBracket)},
 		{Matcher: Whitespace, Optional: true},
 	}); err != nil {
