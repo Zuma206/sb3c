@@ -25,7 +25,7 @@ func MatchAny(matchers ...Matcher) Matcher {
 	return MatcherFunc(func(token *Token) error {
 		var err error
 		for _, matcher := range matchers {
-			if err = matcher.MatchLexToken(token); err != nil {
+			if err = matcher.MatchLexToken(token); err == nil {
 				return nil
 			}
 		}
