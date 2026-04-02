@@ -9,11 +9,6 @@ import (
 	"github.com/zuma206/sb3c/utils"
 )
 
-var (
-	ClassError  = errors.New("class error")
-	MemberError = errors.New("member error")
-)
-
 // Parses a program (AST root)
 func ParseProgram(p *parser.Parser) (*Program, error) {
 	program := &Program{Classes: utils.NewList[*Class]()}
@@ -28,6 +23,8 @@ func ParseProgram(p *parser.Parser) (*Program, error) {
 	}
 	return program, nil
 }
+
+var ClassHeaderError = errors.New("class header error")
 
 func parseClass(p *parser.Parser) (*Class, error) {
 	class := &Class{}
@@ -44,11 +41,11 @@ func parseClass(p *parser.Parser) (*Class, error) {
 		{Matcher: Symbol.WithSource(OpenBrace)},
 		{Matcher: Whitespace, Optional: true},
 	}); err != nil {
-		return nil, fmt.Errorf("%w: %w", ClassError, err)
+		return nil, fmt.Errorf("%w: %w", ClassHeaderError, err)
 	}
 	class.Members, err = parseMembers(p)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %w", MemberError, err)
+		return nil, err
 	}
 	return class, nil
 }
@@ -73,6 +70,8 @@ func parseMembers(p *parser.Parser) (*utils.List[*Member], error) {
 	return members, nil
 }
 
+var MemberNameErr = errors.New("failed to parse member name")
+
 func parseCommonMember(p *parser.Parser) (*Member, error) {
 	member := &Member{}
 	var err error
@@ -85,16 +84,18 @@ func parseCommonMember(p *parser.Parser) (*Member, error) {
 		{Matcher: Identifier, Result: &member.Name},
 		{Matcher: Whitespace, Optional: true},
 	}); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w: %w", MemberNameErr, err)
 	}
 	return member, nil
 }
+
+var MemberSymbolErr = errors.New("invalid member symbol")
 
 func parseMemberValue(p *parser.Parser) (MemberValue, error) {
 	symbol, err := p.ConsumeIf(lexer.MatchAny(Symbol.WithSource(Equals), Symbol.WithSource(OpenBracket)))
 	value := MemberValue{}
 	if err != nil {
-		return value, nil
+		return value, fmt.Errorf("%w: %w", MemberSymbolErr, err)
 	}
 	switch symbol.Src {
 	case Equals:
@@ -108,6 +109,8 @@ func parseMemberValue(p *parser.Parser) (MemberValue, error) {
 	return value, err
 }
 
+var AttributeErr = errors.New("failed to parse attribute")
+
 func parseAttribute(p *parser.Parser) (*Attribute, error) {
 	attribute := &Attribute{}
 	if err := p.Parse([]*parser.ParseStep{
@@ -116,7 +119,7 @@ func parseAttribute(p *parser.Parser) (*Attribute, error) {
 		{Matcher: Whitespace, Optional: true},
 		{Matcher: Symbol.WithSource(Semicolon)},
 	}); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w: %w", AttributeErr, err)
 	}
 	return attribute, nil
 }
@@ -156,6 +159,8 @@ func parseDecorators(p *parser.Parser) (*utils.List[*Call], error) {
 	return decorators, nil
 }
 
+var CallSemicolonErr = errors.New("missing semicolon after call")
+
 func parseCalls(p *parser.Parser) (*utils.List[*Call], error) {
 	functionCalls := utils.NewList[*Call]()
 	for true {
@@ -168,12 +173,17 @@ func parseCalls(p *parser.Parser) (*utils.List[*Call], error) {
 			return nil, err
 		}
 		if _, err := p.ConsumeIf(Symbol.WithSource(Semicolon)); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("%w: %w", CallSemicolonErr, err)
 		}
 		functionCalls.PushBack(functionCall)
 	}
 	return functionCalls, nil
 }
+
+var (
+	CallErr      = errors.New("failed to parse call")
+	CallCloseErr = errors.New("failed to parse call close")
+)
 
 func parseCall(p *parser.Parser) (*Call, error) {
 	call := &Call{}
@@ -183,7 +193,7 @@ func parseCall(p *parser.Parser) (*Call, error) {
 		{Matcher: Symbol.WithSource(OpenBracket)},
 		{Matcher: Whitespace, Optional: true},
 	}); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w: %w", CallErr, err)
 	}
 	call.Args, err = parseCallArgs(p)
 	if err != nil {
@@ -192,7 +202,7 @@ func parseCall(p *parser.Parser) (*Call, error) {
 	if err = p.Parse([]*parser.ParseStep{
 		{Matcher: Symbol.WithSource(CloseBracket)},
 	}); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w: %w", CallCloseErr, err)
 	}
 	return call, nil
 }
