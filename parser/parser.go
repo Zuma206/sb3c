@@ -90,11 +90,11 @@ type ParseStep struct {
 
 // Parse multiple tokens according to steps
 func (parser *Parser) Parse(steps []*ParseStep) error {
-	for _, step := range steps {
+	for i, step := range steps {
 		token, err := parser.ConsumeIf(step.Matcher)
 		if err != nil {
 			if !step.Optional {
-				return err
+				return fmt.Errorf("%w (step %d)", err, i)
 			}
 			continue
 		}
