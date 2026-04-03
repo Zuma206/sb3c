@@ -37,7 +37,7 @@ func newTarget(sb3Project *sb3.SB3, class *language.Class) (*sb3.TargetHnd, erro
 	case StageClass:
 		return sb3Project.NewStage()
 	default:
-		err := fmt.Errorf("%q is an invalid super class %w", class.Name.Src, class.Name)
+		err := fmt.Errorf("%q is an invalid super class %w", class.Name.Src, &class.Name.Pos)
 		return nil, errors.Join(InvalidSuperError, err)
 	}
 }
