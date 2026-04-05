@@ -8,7 +8,9 @@ import (
 	"strings"
 
 	"github.com/zuma206/sb3c/language"
+	"github.com/zuma206/sb3c/lexer"
 	"github.com/zuma206/sb3c/sb3"
+	"github.com/zuma206/sb3c/utils"
 )
 
 func Generate(program *language.Program) (*sb3.SB3, error) {
@@ -62,31 +64,48 @@ func generateMember(target *sb3.TargetHnd, member *language.Member) error {
 	}
 }
 
-var (
-	UndefinedMethodErr = errors.New("undefined method")
-	MissingArgumentErr = errors.New("missing argument")
-)
+var UndefinedMethodErr = errors.New("undefined method")
 
 func generateProcedure(target *sb3.TargetHnd, method *language.Member) error {
 	procedure := target.NewProcedure(method.Name.Src)
 	for call := range method.Value.Method.Calls.Iter() {
-		mapping, ok := mappings[call.Path.Src]
-		if !ok {
-			return fmt.Errorf("%w: %q %w", UndefinedMethodErr, call.Path.Src, &call.Path.Pos)
-		}
-		block := &sb3.Block{Opcode: mapping.Opcode, Inputs: map[string]*sb3.Input{}}
-		next, stop := iter.Pull(call.Args.Iter())
-		defer stop()
-		for _, input := range mapping.Inputs {
-			arg, ok := next()
-			if !ok {
-				return fmt.Errorf("%w: %q %w", MissingArgumentErr, input, &call.Path.Pos)
-			}
-			block.Inputs[input] = sb3.LiteralInput(&sb3.Literal{Type: sb3.LiteralNumber, Value: arg.Src})
+		block, err := generateBlock(call)
+		if err != nil {
+			return err
 		}
 		procedure.PushBlock(block)
 	}
 	return nil
+}
+
+var MissingArgumentErr = errors.New("missing argument")
+
+func generateBlock(call *language.Call) (*sb3.Block, error) {
+	mapping, ok := mappings[call.Path.Src]
+	if !ok {
+		return nil, fmt.Errorf("%w: %q %w", UndefinedMethodErr, call.Path.Src, &call.Path.Pos)
+	}
+	inputs := generateInputs(call.Args, mapping.Inputs)
+	if len(inputs) < len(mapping.Inputs) {
+		err := fmt.Errorf("expected %d arguments, got %d", len(mapping.Inputs), len(inputs))
+		return nil, errors.Join(MissingArgumentErr, err)
+	}
+	block := &sb3.Block{Opcode: mapping.Opcode, Inputs: map[string]*sb3.Input{}}
+	return block, nil
+}
+
+func generateInputs(args *utils.List[*lexer.Token], keys []string) map[string]*sb3.Input {
+	inputs := make(map[string]*sb3.Input, len(keys))
+	next, stop := iter.Pull(args.Iter())
+	defer stop()
+	for _, key := range keys {
+		arg, ok := next()
+		if !ok {
+			break
+		}
+		inputs[key] = sb3.LiteralInput(&sb3.Literal{Type: sb3.LiteralNumber, Value: arg.Src})
+	}
+	return inputs
 }
 
 func generateVariable(target *sb3.TargetHnd, attribute *language.Member) error {
