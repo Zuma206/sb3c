@@ -50,7 +50,7 @@ type Mutation struct {
 	Children         []struct{} `json:"children"`
 	Proccode         string     `json:"proccode"`
 	Argumentids      string     `json:"argumentids"`
-	Argumentnames    string     `json:"argumentnames"`
-	Argumentdefaults string     `json:"argumentdefaults"`
+	Argumentnames    string     `json:"argumentnames,omitempty"`
+	Argumentdefaults string     `json:"argumentdefaults,omitempty"`
 	Warp             bool       `json:"warp"`
 }

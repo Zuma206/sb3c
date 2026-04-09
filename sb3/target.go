@@ -1,7 +1,5 @@
 package sb3
 
-import "github.com/zuma206/sb3c/sb3"
-
 type TargetHnd struct {
 	sb3    *SB3
 	target *Target
@@ -85,7 +83,7 @@ func (blockThread *BlockThread) PushBlock(block *Block) *RegisteredBlock {
 
 func (hnd *ProcedureHnd) Call() *Block {
 	return &Block{
-		Opcode: "procedure_call",
+		Opcode: "procedures_call",
 		Inputs: map[string]*Input{},
 		Fields: struct{}{},
 		Mutation: &Mutation{
