@@ -1,5 +1,7 @@
 package sb3
 
+import "github.com/zuma206/sb3c/sb3"
+
 type TargetHnd struct {
 	sb3    *SB3
 	target *Target
@@ -16,13 +18,27 @@ func (hnd *TargetHnd) registerBlock(block *Block) *RegisteredBlock {
 	return registeredBlock
 }
 
-type ProcedureHnd struct {
+type BlockThread struct {
 	target *TargetHnd
 	tail   *RegisteredBlock
 }
 
+func (hnd *TargetHnd) NewBlockThread() *BlockThread {
+	return &BlockThread{target: hnd}
+}
+
+type ProcedureHnd struct {
+	BlockThread
+	proccode string
+}
+
 func (hnd *TargetHnd) NewProcedure(proccode string) *ProcedureHnd {
-	procedure := &ProcedureHnd{target: hnd}
+	procedure := &ProcedureHnd{
+		BlockThread: BlockThread{
+			target: hnd,
+		},
+		proccode: proccode,
+	}
 	prototype := hnd.registerBlock(&Block{
 		Opcode: "procedures_prototype",
 		Shadow: true,
@@ -53,12 +69,12 @@ func (hnd *TargetHnd) NewVariable(name string, value any) string {
 	return id
 }
 
-func (hnd *ProcedureHnd) PushBlock(block *Block) *RegisteredBlock {
-	registeredBlock := hnd.target.registerBlock(block)
-	if hnd.tail != nil {
-		hnd.tail.block.Next = NonNull(registeredBlock.id)
-		registeredBlock.block.Parent = NonNull(hnd.tail.id)
+func (blockThread *BlockThread) PushBlock(block *Block) *RegisteredBlock {
+	registeredBlock := blockThread.target.registerBlock(block)
+	if blockThread.tail != nil {
+		blockThread.tail.block.Next = NonNull(registeredBlock.id)
+		registeredBlock.block.Parent = NonNull(blockThread.tail.id)
 	}
-	hnd.tail = registeredBlock
+	blockThread.tail = registeredBlock
 	return registeredBlock
 }
