@@ -63,6 +63,10 @@ func (hnd *TargetHnd) NewProcedure(proccode string) *ProcedureHnd {
 	return procedure
 }
 
+func (hnd *ProcedureHnd) Target() *TargetHnd {
+	return hnd.target
+}
+
 func (hnd *TargetHnd) NewVariable(name string, value any) string {
 	id := generateId() + "-" + name
 	hnd.target.Variables[id] = &Variable{Name: name, Value: value}
