@@ -15,7 +15,7 @@ const (
 // Main compiled binary entry point, calls the compiler and prints fatal errors to stderr
 func main() {
 	if err := compiler.Main(); err != nil {
-		fmt.Fprintln(os.Stderr, colorRed+"fatal error:", err.Error(), colorNone)
+		fmt.Fprintln(os.Stderr, colorRed+"encountered fatal error(s)\n"+err.Error()+colorNone)
 		os.Exit(1)
 	}
 }

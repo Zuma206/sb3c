@@ -96,8 +96,8 @@ var LexErr = errors.New("lex error")
 func (lexer *Lexer) consumeError() {
 	if lexer.errorSection != nil {
 		lexer.errorSection.Src = lexer.errorSrc.String()
-		err := fmt.Errorf("%q %w", lexer.errorSection.Src, &lexer.errorSection.Pos)
-		lexer.errors = append(lexer.errors, errors.Join(LexErr, err))
+		err := fmt.Errorf("%w: %q %w", LexErr, lexer.errorSection.Src, &lexer.errorSection.Pos)
+		lexer.errors = append(lexer.errors, err)
 		lexer.errorSection = nil
 	}
 }
