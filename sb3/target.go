@@ -78,3 +78,17 @@ func (blockThread *BlockThread) PushBlock(block *Block) *RegisteredBlock {
 	blockThread.tail = registeredBlock
 	return registeredBlock
 }
+
+func (hnd *ProcedureHnd) Call() *Block {
+	return &Block{
+		Opcode: "procedure_call",
+		Inputs: map[string]*Input{},
+		Fields: struct{}{},
+		Mutation: &Mutation{
+			TagName:     "mutation",
+			Children:    []struct{}{},
+			Proccode:    hnd.proccode,
+			Argumentids: "[]",
+		},
+	}
+}
