@@ -9,12 +9,12 @@ import (
 // Lexes a file into a list of tokens and errors
 type Lexer struct {
 	// Lex errors encountered so far
-	errors []*Section
+	errors []error
 	// Lex tokens parsed so far
 	tokens []*Token
-	// The current error being encountered by the lexer
-	error    *Section
-	errorSrc strings.Builder
+	// The current errorSection being encountered by the lexer
+	errorSection *Section
+	errorSrc     strings.Builder
 	// The types of tokens the lexer can parse
 	types []*Type
 	// The current working position of the lexer in the file
@@ -27,10 +27,10 @@ type Lexer struct {
 
 func NewLexer(src string, types []*Type) *Lexer {
 	return &Lexer{
-		errors: make([]*Section, 0),
-		tokens: make([]*Token, 0),
-		error:  nil,
-		types:  types,
+		errors:       make([]error, 0),
+		tokens:       make([]*Token, 0),
+		errorSection: nil,
+		types:        types,
 		pos: Position{
 			LineNumber: 1,
 			LineOffset: 1,
@@ -81,8 +81,8 @@ func (lexer *Lexer) consume(src string) {
 
 // Consumes source code into the current error
 func (lexer *Lexer) consumeIntoError() {
-	if lexer.error == nil {
-		lexer.error = &Section{Pos: lexer.pos}
+	if lexer.errorSection == nil {
+		lexer.errorSection = &Section{Pos: lexer.pos}
 		lexer.errorSrc = strings.Builder{}
 	}
 	src := string(lexer.src[lexer.pos.Index])
@@ -90,12 +90,15 @@ func (lexer *Lexer) consumeIntoError() {
 	lexer.consume(src)
 }
 
+var LexErr = errors.New("lex error")
+
 // Consumes the current error into the errors slice
 func (lexer *Lexer) consumeError() {
-	if lexer.error != nil {
-		lexer.error.Src = lexer.errorSrc.String()
-		lexer.errors = append(lexer.errors, lexer.error)
-		lexer.error = nil
+	if lexer.errorSection != nil {
+		lexer.errorSection.Src = lexer.errorSrc.String()
+		err := fmt.Errorf("%q %w", lexer.errorSection.Src, &lexer.errorSection.Pos)
+		lexer.errors = append(lexer.errors, errors.Join(LexErr, err))
+		lexer.errorSection = nil
 	}
 }
 
@@ -161,7 +164,7 @@ func (lexer *Lexer) GetTokens() []*Token {
 }
 
 // Parse the remainder of the file and return all errors
-func (lexer *Lexer) GetErrors() []*Section {
+func (lexer *Lexer) GetErrors() []error {
 	lexer.parseAll()
 	return lexer.errors
 }

@@ -14,7 +14,7 @@ type Position struct {
 
 // Implements the error interface, so positions can be wrapped inside of errors
 func (position *Position) Error() string {
-	return fmt.Sprintf("(@%d:%d)", position.LineNumber, position.LineOffset)
+	return fmt.Sprintf("%d:%d", position.LineNumber, position.LineOffset)
 }
 
 // Represents a section of source code in a file
