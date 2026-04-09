@@ -64,16 +64,34 @@ func generateMember(target *sb3.TargetHnd, member *language.Member) error {
 	}
 }
 
-var UndefinedMethodErr = errors.New("undefined method")
+var (
+	UndefinedMethodErr          = errors.New("undefined method")
+	UndefinedMethodDecoratorErr = errors.New("undefined method decorator")
+)
 
 func generateProcedure(target *sb3.TargetHnd, method *language.Member) error {
 	procedure := target.NewProcedure(method.Name.Src)
+	if err := generateProcedureDecorators(method, procedure); err != nil {
+		return err
+	}
 	for call := range method.Value.Method.Calls.Iter() {
 		block, err := generateBlock(call)
 		if err != nil {
 			return err
 		}
 		procedure.PushBlock(block)
+	}
+	return nil
+}
+
+func generateProcedureDecorators(method *language.Member, procedure *sb3.ProcedureHnd) error {
+	for decorator := range method.Decorators.Iter() {
+		mapping, ok := procedureDecoratorMappings[decorator.Path.Src]
+		if !ok {
+			err := fmt.Errorf("%q %w", decorator.Path.Src, &decorator.Path.Pos)
+			return errors.Join(UndefinedMethodDecoratorErr, err)
+		}
+		mapping(procedure)
 	}
 	return nil
 }
