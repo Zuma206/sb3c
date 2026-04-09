@@ -2,6 +2,7 @@ package compiler
 
 import (
 	"bytes"
+	"errors"
 
 	"github.com/zuma206/sb3c/codegen"
 	"github.com/zuma206/sb3c/language"
@@ -20,6 +21,10 @@ func Compile(src string) *CompileResult {
 	result := &CompileResult{}
 	l := lexer.NewLexer(src, language.Types)
 	result.Tokens = l.GetTokens()
+	if len(l.GetErrors()) != 0 {
+		result.Err = errors.Join(l.GetErrors()...)
+		return result
+	}
 	p := parser.NewParser(result.Tokens)
 	result.Program, result.Err = language.ParseProgram(p)
 	if result.Err != nil {
