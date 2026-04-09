@@ -6,29 +6,37 @@ import (
 	"github.com/zuma206/sb3c/visualisation"
 )
 
-// sb3c entry point with error handling
-func Main() error {
+type Inputs struct {
+	args *Args
+	src  string
+}
+
+func getInputs() (*Inputs, error) {
 	args, err := parseArgs()
 	if err != nil {
-		return err
+		return nil, err
 	}
 	src, err := os.ReadFile(args.Target)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	result, err := Compile(string(src))
+	return &Inputs{args, string(src)}, nil
+}
+
+func Main() error {
+	inputs, err := getInputs()
 	if err != nil {
 		return err
 	}
-	return output(result, args)
-}
-
-func output(result *CompileResult, args *Args) error {
-	if args.Tokens {
+	result := Compile(inputs.src)
+	if result.Tokens != nil && inputs.args.Tokens {
 		visualisation.Visualise(result.Tokens)
 	}
-	if args.Syntax {
+	if result.Program != nil && inputs.args.Syntax {
 		visualisation.Visualise(result.Program)
 	}
-	return os.WriteFile(args.Outfile, result.Output, 0644)
+	if result.Err != nil {
+		return result.Err
+	}
+	return os.WriteFile(inputs.args.Outfile, result.Output, 0644)
 }
