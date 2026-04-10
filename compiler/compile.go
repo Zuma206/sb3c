@@ -3,6 +3,7 @@ package compiler
 import (
 	"bytes"
 	"errors"
+	"io/fs"
 
 	"github.com/zuma206/sb3c/codegen"
 	"github.com/zuma206/sb3c/language"
@@ -17,7 +18,7 @@ type CompileResult struct {
 	Err     error
 }
 
-func Compile(src string) *CompileResult {
+func Compile(src string, fileSystem fs.FS) *CompileResult {
 	result := &CompileResult{}
 	l := lexer.NewLexer(src, language.Types)
 	result.Tokens = l.GetTokens()
@@ -30,12 +31,12 @@ func Compile(src string) *CompileResult {
 	if result.Err != nil {
 		return result
 	}
-	result.Output, result.Err = getOutput(result.Program)
+	result.Output, result.Err = getOutput(result.Program, fileSystem)
 	return result
 }
 
-func getOutput(program *language.Program) ([]byte, error) {
-	sb3Project, err := codegen.Generate(program)
+func getOutput(program *language.Program, fileSystem fs.FS) ([]byte, error) {
+	sb3Project, err := codegen.Generate(program, fileSystem)
 	if err != nil {
 		return nil, err
 	}

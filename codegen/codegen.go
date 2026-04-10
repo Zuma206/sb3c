@@ -3,13 +3,14 @@ package codegen
 import (
 	"errors"
 	"fmt"
+	"io/fs"
 
 	"github.com/zuma206/sb3c/language"
 	"github.com/zuma206/sb3c/sb3"
 )
 
-func Generate(program *language.Program) (*sb3.SB3, error) {
-	sb3Project := sb3.NewSB3()
+func Generate(program *language.Program, fileSystem fs.FS) (*sb3.SB3, error) {
+	sb3Project := sb3.NewSB3(fileSystem)
 	for class := range program.Classes.Iter() {
 		target, err := newTarget(sb3Project, class)
 		if err != nil {

@@ -6,7 +6,10 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
+	"io/fs"
+	"strings"
 
 	"github.com/zuma206/sb3c/utils"
 )
@@ -16,6 +19,7 @@ type SB3 struct {
 	assets  []StoredAsset
 	stage   *TargetHnd
 	project Project
+	fs      fs.FS
 }
 
 type StoredAsset struct {
@@ -23,7 +27,7 @@ type StoredAsset struct {
 	content []byte
 }
 
-func NewSB3() *SB3 {
+func NewSB3(fileSystem fs.FS) *SB3 {
 	return &SB3{
 		project: Project{
 			Targets: []*Target{},
@@ -31,6 +35,7 @@ func NewSB3() *SB3 {
 				Semver: "3.0.0",
 			},
 		},
+		fs: fileSystem,
 	}
 }
 
@@ -110,9 +115,21 @@ func (sb3 *SB3) NewStage() (*TargetHnd, error) {
 	return sb3.stage, nil
 }
 
-func (sb3 *SB3) newAsset(name string, format string, content []byte) *Asset {
+var InvalidCostumePathErr = errors.New("invalid costume path")
+
+func (sb3 *SB3) loadAsset(name string, path string) (*Asset, error) {
+	content, err := fs.ReadFile(sb3.fs, path)
+	if err != nil {
+		return nil, err
+	}
 	sum := md5.Sum(content)
 	hexSum := hex.EncodeToString(sum[:])
+	pathParts := strings.Split(path, ".")
+	if len(pathParts) < 2 {
+		err := fmt.Errorf("%q has no file extension", path)
+		return nil, errors.Join(InvalidCostumePathErr, err)
+	}
+	format := pathParts[len(pathParts)-1]
 	asset := &Asset{
 		Name:       name,
 		AssetId:    hexSum,
@@ -120,5 +137,5 @@ func (sb3 *SB3) newAsset(name string, format string, content []byte) *Asset {
 		Md5ext:     hexSum + "." + format,
 	}
 	sb3.assets = append(sb3.assets, StoredAsset{asset, content})
-	return asset
+	return asset, nil
 }

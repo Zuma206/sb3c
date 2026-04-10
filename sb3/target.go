@@ -99,10 +99,14 @@ func (hnd *ProcedureHnd) Call() *Block {
 	}
 }
 
-func (hnd *TargetHnd) NewCostume(name string, format string, content []byte) *Costume {
+func (hnd *TargetHnd) NewCostume(name string, path string) (*Costume, error) {
+	asset, err := hnd.sb3.loadAsset(name, path)
+	if err != nil {
+		return nil, err
+	}
 	costume := &Costume{
-		Asset: hnd.sb3.newAsset(name, format, content),
+		Asset: asset,
 	}
 	hnd.target.Costumes = append(hnd.target.Costumes, costume)
-	return costume
+	return costume, nil
 }

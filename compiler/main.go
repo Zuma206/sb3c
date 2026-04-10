@@ -2,6 +2,7 @@ package compiler
 
 import (
 	"os"
+	"path/filepath"
 
 	"github.com/zuma206/sb3c/visualisation"
 )
@@ -9,6 +10,7 @@ import (
 type Inputs struct {
 	args *Args
 	src  string
+	dir  string
 }
 
 func getInputs() (*Inputs, error) {
@@ -20,7 +22,15 @@ func getInputs() (*Inputs, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Inputs{args, string(src)}, nil
+	targetPath, err := filepath.Abs(args.Target)
+	if err != nil {
+		return nil, err
+	}
+	return &Inputs{
+		args: args,
+		src:  string(src),
+		dir:  filepath.Dir(targetPath),
+	}, nil
 }
 
 func Main() error {
@@ -28,7 +38,7 @@ func Main() error {
 	if err != nil {
 		return err
 	}
-	result := Compile(inputs.src)
+	result := Compile(inputs.src, os.DirFS(inputs.dir))
 	if result.Tokens != nil && inputs.args.Tokens {
 		visualisation.Visualise(result.Tokens)
 	}
