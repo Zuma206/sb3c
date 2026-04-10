@@ -39,7 +39,7 @@ func parseCallArgs(p *parser.Parser) (*utils.List[*lexer.Token], error) {
 	args := utils.NewList[*lexer.Token]()
 	for !p.Check(Symbol.WithSource(CloseBracket)) {
 		p.ConsumeIf(Whitespace)
-		arg, err := p.ConsumeIf(lexer.MatchAny(NumberLiteral, StringLiteral))
+		arg, err := parseExpression(p)
 		if err != nil {
 			return nil, err
 		}

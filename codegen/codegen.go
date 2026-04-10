@@ -138,7 +138,7 @@ func getLiteralType(token *lexer.Token) sb3.LiteralType {
 }
 
 func generateVariable(target *sb3.TargetHnd, attribute *language.Member) error {
-	initialValue, err := generateVariableInitialValue(attribute.Value.Attribute)
+	initialValue, err := evaluateConstantExpression(attribute.Value.Attribute.Initializer)
 	if err != nil {
 		return err
 	}
@@ -146,16 +146,20 @@ func generateVariable(target *sb3.TargetHnd, attribute *language.Member) error {
 	return nil
 }
 
-var InvalidInitalValueErr = errors.New("invalid attribute initial value")
+var NonConstantExpressionErr = errors.New("non-constant expression")
 
-func generateVariableInitialValue(attribute *language.Attribute) (any, error) {
-	if attribute.Initializer == nil {
-		return "", nil
-	}
-	switch attribute.Initializer.Type {
+func evaluateConstantExpression(token *lexer.Token) (any, error) {
+	switch token.Type {
 	case language.NumberLiteral:
-		return strconv.Atoi(strings.ReplaceAll(attribute.Initializer.Src, "_", ""))
+		return strconv.Atoi(strings.ReplaceAll(token.Src, "_", ""))
+	case language.StringLiteral:
+		return parseStringLiteral(token.Src), nil
 	default:
-		return nil, errors.Join(InvalidInitalValueErr, &attribute.Initializer.Pos)
+		err := fmt.Errorf("expected a non-constant expression, got %q %w", token.Src, &token.Pos)
+		return nil, errors.Join(NonConstantExpressionErr, err)
 	}
+}
+
+func parseStringLiteral(src string) string {
+	return src[1 : len(src)-1]
 }

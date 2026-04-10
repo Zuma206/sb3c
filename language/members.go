@@ -70,9 +70,9 @@ var AttributeErr = errors.New("failed to parse attribute")
 
 func parseAttribute(p *parser.Parser) (*Attribute, error) {
 	attribute := &Attribute{}
+	p.ConsumeIf(Whitespace)
+	attribute.Initializer, _ = parseExpression(p)
 	if err := p.Parse([]*parser.ParseStep{
-		{Matcher: Whitespace, Optional: true},
-		{Matcher: NumberLiteral, Result: &attribute.Initializer, Optional: true},
 		{Matcher: Whitespace, Optional: true},
 		{Matcher: Symbol.WithSource(Semicolon)},
 	}); err != nil {
