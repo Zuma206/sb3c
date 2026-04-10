@@ -65,6 +65,10 @@ func (hnd *ProcedureHnd) Target() *TargetHnd {
 	return hnd.target
 }
 
+func (hnd *TargetHnd) Project() *SB3 {
+	return hnd.sb3
+}
+
 func (hnd *TargetHnd) NewVariable(name string, value any) string {
 	id := generateId() + "-" + name
 	hnd.target.Variables[id] = &Variable{Name: name, Value: value}
