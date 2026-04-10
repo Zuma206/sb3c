@@ -2,6 +2,8 @@ package sb3
 
 import (
 	"archive/zip"
+	"crypto/md5"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"io"
@@ -11,8 +13,14 @@ import (
 
 // Represents a .sb3 file
 type SB3 struct {
+	assets  []StoredAsset
 	stage   *TargetHnd
 	project Project
+}
+
+type StoredAsset struct {
+	*Asset
+	content []byte
 }
 
 func NewSB3() *SB3 {
@@ -45,6 +53,9 @@ func (sb3 *SB3) WriteTo(w io.Writer) (int64, error) {
 	if err := sb3.writeProjectJson(sb3File); err != nil {
 		return int64(counter.Written), err
 	}
+	if err := sb3.writeAssetFiles(sb3File); err != nil {
+		return int64(counter.Written), err
+	}
 	return int64(counter.Written), nil
 }
 
@@ -60,20 +71,24 @@ func (sb3 *SB3) writeProjectJson(sb3File *zip.Writer) error {
 	return nil
 }
 
+func (sb3 *SB3) writeAssetFiles(sb3File *zip.Writer) error {
+	for _, asset := range sb3.assets {
+		file, err := sb3File.Create(asset.Md5ext)
+		if err != nil {
+			return err
+		}
+		if _, err := file.Write(asset.content); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func (sb3 *SB3) newTarget(name string, isStage bool) *Target {
 	target := &Target{
-		IsStage: isStage,
-		Name:    name,
-		Costumes: []Costume{
-			{
-				Asset: Asset{
-					Name:       "backdrop1",
-					DataFormat: "svg",
-					AssetId:    "cd21514d0531fdffb22204e0ec5ed84a",
-					Md5ext:     "cd21514d0531fdffb22204e0ec5ed84a.svg",
-				},
-			},
-		},
+		IsStage:   isStage,
+		Name:      name,
+		Costumes:  []*Costume{},
 		Sounds:    []struct{}{},
 		Blocks:    map[string]*Block{},
 		Variables: map[string]*Variable{},
@@ -93,4 +108,17 @@ func (sb3 *SB3) NewStage() (*TargetHnd, error) {
 		sb3:    sb3,
 	}
 	return sb3.stage, nil
+}
+
+func (sb3 *SB3) newAsset(name string, format string, content []byte) *Asset {
+	sum := md5.Sum(content)
+	hexSum := hex.EncodeToString(sum[:])
+	asset := &Asset{
+		Name:       name,
+		AssetId:    hexSum,
+		DataFormat: format,
+		Md5ext:     hexSum + "." + format,
+	}
+	sb3.assets = append(sb3.assets, StoredAsset{asset, content})
+	return asset
 }

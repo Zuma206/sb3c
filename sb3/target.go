@@ -98,3 +98,11 @@ func (hnd *ProcedureHnd) Call() *Block {
 		},
 	}
 }
+
+func (hnd *TargetHnd) NewCostume(name string, format string, content []byte) *Costume {
+	costume := &Costume{
+		Asset: hnd.sb3.newAsset(name, format, content),
+	}
+	hnd.target.Costumes = append(hnd.target.Costumes, costume)
+	return costume
+}

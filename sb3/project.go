@@ -15,7 +15,7 @@ type Target struct {
 	Name      string               `json:"name"`
 	Blocks    map[string]*Block    `json:"blocks"`
 	Variables map[string]*Variable `json:"variables"`
-	Costumes  []Costume            `json:"costumes"`
+	Costumes  []*Costume           `json:"costumes"`
 	Sounds    []struct{}           `json:"sounds"`
 }
 
@@ -27,7 +27,7 @@ type Asset struct {
 }
 
 type Costume struct {
-	Asset
+	*Asset
 	RotationCenterX int `json:"rotationCenterX"`
 	RotationCenterY int `json:"rotationCenterY"`
 }
