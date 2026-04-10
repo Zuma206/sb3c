@@ -15,12 +15,14 @@ func generateAttributeDecorators(method *language.Member, target *sb3.TargetHnd)
 	return generateDecorators(method, target, attributeDecoratorMappings)
 }
 
+var InvalidDecoratorErr = errors.New("invalid decorator")
+
 func generateDecorators[Handle any](member *language.Member, hnd Handle, mappings DecoratorMappings[Handle]) error {
 	for decorator := range member.Decorators.Iter() {
 		mapping, ok := mappings[decorator.Path.Src]
 		if !ok {
 			err := fmt.Errorf("%q %w", decorator.Path.Src, &decorator.Path.Pos)
-			return errors.Join(UndefinedMethodDecoratorErr, err)
+			return errors.Join(InvalidDecoratorErr, err)
 		}
 		if err := mapping(member, hnd); err != nil {
 			return fmt.Errorf("%w %w", err, &member.Name.Pos)

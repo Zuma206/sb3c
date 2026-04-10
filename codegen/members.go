@@ -22,10 +22,7 @@ func generateMember(target *sb3.TargetHnd, member *language.Member) error {
 	}
 }
 
-var (
-	UndefinedMethodErr          = errors.New("undefined method")
-	UndefinedMethodDecoratorErr = errors.New("undefined method decorator")
-)
+var UndefinedMethodErr = errors.New("undefined method")
 
 func generateProcedure(target *sb3.TargetHnd, method *language.Member) error {
 	procedure := target.NewProcedure(method.Name.Src)
@@ -93,6 +90,9 @@ func generateVariable(target *sb3.TargetHnd, attribute *language.Member) error {
 		if err != nil {
 			return err
 		}
+	}
+	if err := generateAttributeDecorators(attribute, target); err != nil {
+		return err
 	}
 	target.NewVariable(attribute.Name.Src, initialValue)
 	return nil
