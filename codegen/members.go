@@ -42,18 +42,6 @@ func generateProcedure(target *sb3.TargetHnd, method *language.Member) error {
 	return nil
 }
 
-func generateProcedureDecorators(method *language.Member, procedure *sb3.ProcedureHnd) error {
-	for decorator := range method.Decorators.Iter() {
-		mapping, ok := procedureDecoratorMappings[decorator.Path.Src]
-		if !ok {
-			err := fmt.Errorf("%q %w", decorator.Path.Src, &decorator.Path.Pos)
-			return errors.Join(UndefinedMethodDecoratorErr, err)
-		}
-		mapping(procedure)
-	}
-	return nil
-}
-
 func generateBlock(call *language.Call) (*sb3.Block, error) {
 	mapping, ok := mappings[call.Path.Src]
 	if !ok {
@@ -98,9 +86,13 @@ func generateInputs(args *utils.List[*lexer.Token], keys []string) (map[string]*
 }
 
 func generateVariable(target *sb3.TargetHnd, attribute *language.Member) error {
-	initialValue, err := evaluateConstantExpression(attribute.Value.Attribute.Initializer)
-	if err != nil {
-		return err
+	var initialValue any = ""
+	if attribute.Value.Attribute.Initializer != nil {
+		var err error
+		initialValue, err = evaluateConstantExpression(attribute.Value.Attribute.Initializer)
+		if err != nil {
+			return err
+		}
 	}
 	target.NewVariable(attribute.Name.Src, initialValue)
 	return nil

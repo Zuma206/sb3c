@@ -1,6 +1,9 @@
 package codegen
 
-import "github.com/zuma206/sb3c/sb3"
+import (
+	"github.com/zuma206/sb3c/language"
+	"github.com/zuma206/sb3c/sb3"
+)
 
 type BlockMapping struct {
 	Opcode string
@@ -13,14 +16,17 @@ var mappings = map[string]*BlockMapping{
 	"this.sound.setVolumeTo": {Opcode: "sound_setvolumeto", Inputs: []string{"VOLUME"}},
 }
 
-type ProcedureDecoratorMapping func(procedure *sb3.ProcedureHnd)
+type DecoratorMapping[Handle any] func(member *language.Member, handle Handle) error
+type DecoratorMappings[Handle any] map[string]DecoratorMapping[Handle]
 
-var procedureDecoratorMappings = map[string]ProcedureDecoratorMapping{
+var procedureDecoratorMappings = DecoratorMappings[*sb3.ProcedureHnd]{
 	"whenGreenFlagClicked": procedureCallDecorator("event_whenflagclicked"),
 }
 
-func procedureCallDecorator(opcode string) ProcedureDecoratorMapping {
-	return func(procedure *sb3.ProcedureHnd) {
+var attributeDecoratorMappings = DecoratorMappings[*sb3.TargetHnd]{}
+
+func procedureCallDecorator(opcode string) DecoratorMapping[*sb3.ProcedureHnd] {
+	return func(_ *language.Member, procedure *sb3.ProcedureHnd) error {
 		blockThread := procedure.Target().NewBlockThread()
 		blockThread.PushBlock(&sb3.Block{
 			Opcode:   opcode,
@@ -29,5 +35,6 @@ func procedureCallDecorator(opcode string) ProcedureDecoratorMapping {
 			TopLevel: true,
 		})
 		blockThread.PushBlock(procedure.Call())
+		return nil
 	}
 }
