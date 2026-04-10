@@ -121,9 +121,20 @@ func generateInputs(args *utils.List[*lexer.Token], keys []string) (map[string]*
 			err := fmt.Errorf("expected %d got %d", len(keys), i)
 			return nil, errors.Join(NotEnoughArgumentsErr, err)
 		}
-		inputs[key] = sb3.LiteralInput(&sb3.Literal{Type: sb3.LiteralNumber, Value: arg.Src})
+		inputs[key] = sb3.LiteralInput(&sb3.Literal{Type: getLiteralType(arg), Value: arg.Src})
 	}
 	return inputs, nil
+}
+
+func getLiteralType(token *lexer.Token) sb3.LiteralType {
+	switch token.Type {
+	case language.NumberLiteral:
+		return sb3.LiteralNumber
+	case language.StringLiteral:
+		return sb3.LiteralString
+	default:
+		panic("unhandled literal lex token type")
+	}
 }
 
 func generateVariable(target *sb3.TargetHnd, attribute *language.Member) error {

@@ -17,7 +17,10 @@ func ShadowInput(shadow string) *Input {
 
 type LiteralType uint8
 
-var LiteralNumber LiteralType = 4
+var (
+	LiteralNumber LiteralType = 4
+	LiteralString LiteralType = 10
+)
 
 type Literal struct {
 	Type  LiteralType
