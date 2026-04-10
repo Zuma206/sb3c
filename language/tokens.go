@@ -39,6 +39,7 @@ var (
 	Whitespace    = lexer.NewType("Whitespace", `[\n\r\t\ ]+`)
 	Keyword       = lexer.NewTypeSet("Keyword", Keywords)
 	Symbol        = lexer.NewTypeSet("Symbol", Symbols)
+	StringLiteral = lexer.NewType("StringLiteral", `"([^"\\]|\\.)*"`)
 )
 
-var Types = []*lexer.Type{Symbol, Keyword, Identifier, Path, Whitespace, NumberLiteral}
+var Types = []*lexer.Type{Symbol, Keyword, Identifier, Path, Whitespace, NumberLiteral, StringLiteral}
