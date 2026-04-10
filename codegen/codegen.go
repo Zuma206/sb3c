@@ -96,34 +96,34 @@ func generateProcedureDecorators(method *language.Member, procedure *sb3.Procedu
 	return nil
 }
 
-var MissingArgumentErr = errors.New("missing argument")
-
 func generateBlock(call *language.Call) (*sb3.Block, error) {
 	mapping, ok := mappings[call.Path.Src]
 	if !ok {
 		return nil, fmt.Errorf("%w: %q %w", UndefinedMethodErr, call.Path.Src, &call.Path.Pos)
 	}
-	inputs := generateInputs(call.Args, mapping.Inputs)
-	if len(inputs) < len(mapping.Inputs) {
-		err := fmt.Errorf("expected %d arguments, got %d", len(mapping.Inputs), len(inputs))
-		return nil, errors.Join(MissingArgumentErr, err)
+	inputs, err := generateInputs(call.Args, mapping.Inputs)
+	if err != nil {
+		return nil, fmt.Errorf("%w %w", err, &call.Path.Pos)
 	}
-	block := &sb3.Block{Opcode: mapping.Opcode, Inputs: map[string]*sb3.Input{}}
+	block := &sb3.Block{Opcode: mapping.Opcode, Inputs: inputs}
 	return block, nil
 }
 
-func generateInputs(args *utils.List[*lexer.Token], keys []string) map[string]*sb3.Input {
+var NotEnoughArgumentsErr = errors.New("not enough arguments")
+
+func generateInputs(args *utils.List[*lexer.Token], keys []string) (map[string]*sb3.Input, error) {
 	inputs := make(map[string]*sb3.Input, len(keys))
 	next, stop := iter.Pull(args.Iter())
 	defer stop()
-	for _, key := range keys {
+	for i, key := range keys {
 		arg, ok := next()
 		if !ok {
-			break
+			err := fmt.Errorf("expected %d got %d", len(keys), i)
+			return nil, errors.Join(NotEnoughArgumentsErr, err)
 		}
 		inputs[key] = sb3.LiteralInput(&sb3.Literal{Type: sb3.LiteralNumber, Value: arg.Src})
 	}
-	return inputs
+	return inputs, nil
 }
 
 func generateVariable(target *sb3.TargetHnd, attribute *language.Member) error {
