@@ -8,7 +8,8 @@ type BlockMapping struct {
 }
 
 var mappings = map[string]*BlockMapping{
-	"this.motion.moveSteps": {Opcode: "motion_movesteps", Inputs: []string{"STEPS"}},
+	"this.motion.moveSteps":  {Opcode: "motion_movesteps", Inputs: []string{"STEPS"}},
+	"this.sound.setVolumeTo": {Opcode: "sound_setvolumeto", Inputs: []string{"VOLUME"}},
 }
 
 type ProcedureDecoratorMapping func(procedure *sb3.ProcedureHnd)
