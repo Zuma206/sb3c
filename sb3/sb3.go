@@ -102,7 +102,7 @@ func (sb3 *SB3) newTarget(name string, isStage bool) *Target {
 	return target
 }
 
-var StageAlreadyExistsError = errors.New("stage already exists")
+var StageAlreadyExistsError = errors.New("found second class extending stage")
 
 func (sb3 *SB3) NewStage() (*TargetHnd, error) {
 	if sb3.stage != nil {
