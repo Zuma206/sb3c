@@ -13,9 +13,9 @@ import (
 
 func generateMember(target *sb3.TargetHnd, member *language.Member) error {
 	switch {
-	case member.Value.Method != nil:
+	case member.AttributeOrMethod.Method != nil:
 		return generateProcedure(target, member)
-	case member.Value.Attribute != nil:
+	case member.AttributeOrMethod.Attribute != nil:
 		return generateVariable(target, member)
 	default:
 		panic("malformed class member")
@@ -29,7 +29,7 @@ func generateProcedure(target *sb3.TargetHnd, method *language.Member) error {
 	if err := generateProcedureDecorators(method, procedure); err != nil {
 		return err
 	}
-	for call := range method.Value.Method.Calls.Iter() {
+	for call := range method.AttributeOrMethod.Method.Calls.Iter() {
 		block, err := generateBlock(call)
 		if err != nil {
 			return err
@@ -84,9 +84,9 @@ func generateInputs(args *utils.List[*lexer.Token], keys []string) (map[string]*
 
 func generateVariable(target *sb3.TargetHnd, attribute *language.Member) error {
 	var initialValue any = ""
-	if attribute.Value.Attribute.Initializer != nil {
+	if attribute.AttributeOrMethod.Attribute.Initializer != nil {
 		var err error
-		initialValue, err = evaluateConstantExpression(attribute.Value.Attribute.Initializer)
+		initialValue, err = evaluateConstantExpression(attribute.AttributeOrMethod.Attribute.Initializer)
 		if err != nil {
 			return err
 		}
