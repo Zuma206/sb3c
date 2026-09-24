@@ -90,3 +90,18 @@ func Until[T any](parseValue ParseValue[T], parseToken *parseToken) ParseValueFu
 		return list, nil
 	}
 }
+
+// While the token described by `parseToken` can be consumed, `parseValue` will be parsed into a list
+func While[T any](parseToken *parseToken, parseValue ParseValue[T]) ParseValueFunc[*utils.List[T]] {
+	return func(p *Parser) (*utils.List[T], error) {
+		list := utils.NewList[T]()
+		for parseToken.Parse(p) != nil {
+			value, err := parseValue.ParseValue(p)
+			if err != nil {
+				return nil, err
+			}
+			list.PushBack(value)
+		}
+		return list, nil
+	}
+}

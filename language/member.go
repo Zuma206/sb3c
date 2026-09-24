@@ -8,40 +8,34 @@ import (
 	"github.com/zuma206/sb3c/utils"
 )
 
-var MemberNameErr = errors.New("failed to parse member name")
-
-func parseMember(p *parser.Parser) (*Member, error) {
-	member, err := parseCommonMember(p)
-	if err != nil {
-		return nil, err
-	}
-	member.Value, err = parseMemberValue(p)
-	if err != nil {
-		return nil, err
-	}
-	return member, nil
+type Member struct {
+	Decorators        *utils.List[*Call]
+	Name              *lexer.Token
+	AttributeOrMethod AttributeOrMethod
 }
 
-func parseCommonMember(p *parser.Parser) (*Member, error) {
-	member := &Member{}
-	var err error
-	member.Decorators, err = parseDecorators(p)
-	if err != nil {
-		return nil, err
-	}
-	if err = p.Parse([]*parser.ParseStep{
-		{Matcher: Whitespace, Optional: true},
-		{Matcher: Identifier, Result: &member.Name},
-		{Matcher: Whitespace, Optional: true},
-	}); err != nil {
-		return nil, errors.Join(MemberNameErr, err)
-	}
-	return member, nil
+type AttributeOrMethod struct {
+	Attribute *Attribute
+	Method    *Method
 }
+
+var member = parser.Value(func(member *Member) parser.Parse {
+	return parser.All(
+		parser.Store(&member.Decorators,
+			parser.While(parser.Token(Symbol, At),
+				parser.Affix(parser.All(),
+					parser.Func(parseCall),
+					parser.Optional(parser.Type(Whitespace))))),
+		parser.Optional(parser.Type(Whitespace)),
+		parser.Store(&member.Name, parser.Type(Identifier)),
+		parser.Optional(parser.Type(Whitespace)),
+		parser.Store(&member.AttributeOrMethod, parser.Func(parseAttributeOrMethod)),
+	)
+})
 
 var MemberSymbolErr = errors.New("invalid member symbol")
 
-func parseMemberValue(p *parser.Parser) (MemberValue, error) {
+func parseAttributeOrMethod(p *parser.Parser) (AttributeOrMethod, error) {
 	symbol, err := p.ConsumeIf(lexer.MatchAny(
 		Symbol.WithSource(Equals), Symbol.WithSource(Semicolon), Symbol.WithSource(OpenBracket)))
 	value := MemberValue{}
@@ -60,22 +54,6 @@ func parseMemberValue(p *parser.Parser) (MemberValue, error) {
 		panic("class member parsed invalid symbol as correct")
 	}
 	return value, err
-}
-
-func parseDecorators(p *parser.Parser) (*utils.List[*Call], error) {
-	decorators := utils.NewList[*Call]()
-	for {
-		p.ConsumeIf(Whitespace)
-		if _, err := p.ConsumeIf(Symbol.WithSource(At)); err != nil {
-			break
-		}
-		decorator, err := parseCall(p)
-		if err != nil {
-			return nil, err
-		}
-		decorators.PushBack(decorator)
-	}
-	return decorators, nil
 }
 
 var AttributeErr = errors.New("failed to parse attribute")

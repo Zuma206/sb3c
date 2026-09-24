@@ -27,7 +27,7 @@ var class = parser.Value(func(class *Class) parser.Parse {
 			parser.Until(
 				parser.Affix(
 					parser.Optional(parser.Type(Whitespace)),
-					parser.Func(parseMember),
+					member,
 					parser.Optional(parser.Type(Whitespace))),
 				parser.Token(Symbol, CloseBrace))))
 })
