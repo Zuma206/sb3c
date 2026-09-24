@@ -10,6 +10,18 @@ import (
 
 var MemberNameErr = errors.New("failed to parse member name")
 
+func parseMember(p *parser.Parser) (*Member, error) {
+	member, err := parseCommonMember(p)
+	if err != nil {
+		return nil, err
+	}
+	member.Value, err = parseMemberValue(p)
+	if err != nil {
+		return nil, err
+	}
+	return member, nil
+}
+
 func parseCommonMember(p *parser.Parser) (*Member, error) {
 	member := &Member{}
 	var err error

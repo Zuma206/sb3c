@@ -14,7 +14,7 @@ var ParseProgram = parser.Value(func(program *Program) parser.Parse {
 		parser.UntilFinished(
 			parser.Affix(
 				parser.Optional(parser.Type(Whitespace)),
-				parser.Func(parseClass),
+				class,
 				parser.Optional(parser.Type(Whitespace)),
 			)))
 })
