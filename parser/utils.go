@@ -49,3 +49,8 @@ func Value[T any](f func(value T) Parse) ParseValueFunc[T] {
 		return value, f(value).Parse(p)
 	}
 }
+
+// Constructs a `ParseValueFunc[T]` with inferrance
+func Func[T any](parseValueFunc ParseValueFunc[T]) ParseValueFunc[T] {
+	return parseValueFunc
+}
