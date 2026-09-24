@@ -8,21 +8,21 @@ import (
 )
 
 // Parses a single token by type, source, or both
-type ParseToken struct {
-	Type *lexer.Type
-	Src  *string
+type parseToken struct {
+	tokenType *lexer.Type
+	src       *string
 }
 
-func Type(tokenType *lexer.Type) *ParseToken {
-	return &ParseToken{
-		Type: tokenType,
+func Type(tokenType *lexer.Type) *parseToken {
+	return &parseToken{
+		tokenType: tokenType,
 	}
 }
 
-func Token(tokenType *lexer.Type, src string) *ParseToken {
-	return &ParseToken{
-		Type: tokenType,
-		Src:  &src,
+func Token(tokenType *lexer.Type, src string) *parseToken {
+	return &parseToken{
+		tokenType: tokenType,
+		src:       &src,
 	}
 }
 
@@ -32,24 +32,24 @@ var (
 )
 
 // Parses a single token described by `ParseToken`, returning it
-func (parseToken ParseToken) ParseValue(p *Parser) (*lexer.Token, error) {
+func (parseToken parseToken) ParseValue(p *Parser) (*lexer.Token, error) {
 	token, err := p.Peek(0)
 	if err != nil {
 		return nil, err
 	}
-	if parseToken.Type != nil && token.Type != parseToken.Type {
-		err := fmt.Errorf("expected %q got %q %w", parseToken.Type.Name, token.Type.Name, &token.Pos)
+	if parseToken.tokenType != nil && token.Type != parseToken.tokenType {
+		err := fmt.Errorf("expected %q got %q %w", parseToken.tokenType.Name, token.Type.Name, &token.Pos)
 		return nil, errors.Join(InvalidTokenTypeErr, err)
 	}
-	if parseToken.Src != nil && token.Src != *parseToken.Src {
-		err := fmt.Errorf("expected %q got %q %w", *parseToken.Src, token.Src, &token.Pos)
+	if parseToken.src != nil && token.Src != *parseToken.src {
+		err := fmt.Errorf("expected %q got %q %w", *parseToken.src, token.Src, &token.Pos)
 		return nil, errors.Join(InvalidTokenSrcErr, err)
 	}
 	return p.Consume()
 }
 
 // Parses a single token described by `ParseToken` and then discards it
-func (parseToken ParseToken) Parse(p *Parser) error {
+func (parseToken parseToken) Parse(p *Parser) error {
 	_, err := parseToken.ParseValue(p)
 	return err
 }
