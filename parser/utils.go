@@ -71,3 +71,21 @@ func Affix[T any](prefix Parse, parseValue ParseValue[T], suffix Parse) ParseVal
 		return value, err
 	}
 }
+
+// Parses a list of `T` until a specific token is reached and consumed
+func Until[T any](parseValue ParseValue[T], parseToken *parseToken) ParseValueFunc[*utils.List[T]] {
+	return func(p *Parser) (*utils.List[T], error) {
+		list := utils.NewList[T]()
+		for {
+			if err := parseToken.Parse(p); err != nil {
+				break
+			}
+			value, err := parseValue.ParseValue(p)
+			if err != nil {
+				return nil, err
+			}
+			list.PushBack(value)
+		}
+		return list, nil
+	}
+}
