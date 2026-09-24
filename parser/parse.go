@@ -32,3 +32,11 @@ func (parseValue ParseValueFunc[T]) Parse(p *Parser) error {
 	_, err := parseValue.ParseValue(p)
 	return err
 }
+
+// Parses an optional token
+func Optional(parseToken *ParseToken) ParseFunc {
+	return func(p *Parser) error {
+		parseToken.Parse(p)
+		return nil
+	}
+}
