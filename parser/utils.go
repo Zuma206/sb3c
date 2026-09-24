@@ -54,3 +54,20 @@ func Value[T any](f func(value T) Parse) ParseValueFunc[T] {
 func Func[T any](parseValueFunc ParseValueFunc[T]) ParseValueFunc[T] {
 	return parseValueFunc
 }
+
+// Adds a prefix and suffix to a `ParseValue` whilst preserving the value
+func Affix[T any](prefix Parse, parseValue ParseValue[T], suffix Parse) ParseValueFunc[T] {
+	return func(p *Parser) (value T, err error) {
+		if err = prefix.Parse(p); err != nil {
+			return value, err
+		}
+		value, err = parseValue.ParseValue(p)
+		if err != nil {
+			return value, err
+		}
+		if err = suffix.Parse(p); err != nil {
+			return value, err
+		}
+		return value, err
+	}
+}
