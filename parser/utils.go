@@ -42,3 +42,10 @@ func UntilFinished[T any](parse ParseValue[T]) ParseValueFunc[*utils.List[T]] {
 		return list, nil
 	}
 }
+
+// Creates a value inline whilst parsing
+func Value[T any](f func(value T) Parse) ParseValueFunc[T] {
+	return func(p *Parser) (value T, err error) {
+		return value, f(value).Parse(p)
+	}
+}
