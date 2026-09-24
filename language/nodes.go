@@ -5,10 +5,6 @@ import (
 	"github.com/zuma206/sb3c/utils"
 )
 
-type Program struct {
-	Classes *utils.List[*Class]
-}
-
 type Class struct {
 	Name    *lexer.Token
 	Super   *lexer.Token

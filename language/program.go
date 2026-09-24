@@ -5,17 +5,16 @@ import (
 	"github.com/zuma206/sb3c/utils"
 )
 
-// Parses a program (AST root)
-func ParseProgram(p *parser.Parser) (*Program, error) {
-	program := &Program{Classes: utils.NewList[*Class]()}
-	for !p.Finished() {
-		p.ConsumeIf(Whitespace)
-		class, err := parseClass(p)
-		if err != nil {
-			return nil, err
-		}
-		program.Classes.PushBack(class)
-		p.ConsumeIf(Whitespace)
-	}
-	return program, nil
+type Program struct {
+	Classes *utils.List[*Class]
 }
+
+var ParseProgram = parser.Value(func(program *Program) parser.Parse {
+	return parser.Store(&program.Classes,
+		parser.UntilFinished(
+			parser.Affix(
+				parser.Optional(parser.Type(Whitespace)),
+				parser.Func(parseClass),
+				parser.Optional(parser.Type(Whitespace)),
+			)))
+})
