@@ -1,5 +1,9 @@
 package parser
 
+import (
+	"github.com/zuma206/sb3c/utils"
+)
+
 // Stores the value of a `ParseValue` step into a pointer
 func Store[T any](result *T, parseValue ParseValue[T]) ParseFunc {
 	return func(p *Parser) error {
@@ -21,5 +25,20 @@ func All(all ...Parse) ParseFunc {
 			}
 		}
 		return nil
+	}
+}
+
+// Continually parses until the parser is finished
+func UntilFinished[T any](parse ParseValue[T]) ParseValueFunc[*utils.List[T]] {
+	return func(p *Parser) (*utils.List[T], error) {
+		list := utils.NewList[T]()
+		for !p.Finished() {
+			value, err := parse.ParseValue(p)
+			if err != nil {
+				return nil, err
+			}
+			list.PushBack(value)
+		}
+		return list, nil
 	}
 }
