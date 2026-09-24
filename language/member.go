@@ -16,9 +16,13 @@ var member = parser.Value(func(member *Member) parser.Parse {
 	return parser.All(
 		parser.Store(&member.Decorators,
 			parser.While(parser.Token(Symbol, At),
-				parser.Affix(parser.All(),
-					parser.Func(parseCall),
-					parser.Optional(parser.Type(Whitespace))))),
+				parser.Affix(
+					parser.Token(Symbol, At),
+					call,
+					parser.Optional(parser.Type(Whitespace)),
+				),
+			),
+		),
 		parser.Optional(parser.Type(Whitespace)),
 		parser.Store(&member.Name, parser.Type(Identifier)),
 		parser.Optional(parser.Type(Whitespace)),
@@ -40,13 +44,13 @@ var attributeOrMethod = parser.Value(func(attributeOrMethod *AttributeOrMethod) 
 })
 
 type Attribute struct {
-	Initializer *lexer.Token
+	Initializer *Expression
 }
 
 var attribute = parser.Value(func(attribute *Attribute) parser.Parse {
 	return parser.All(
 		parser.Optional(parser.Type(Whitespace)),
-		parser.Store(&attribute.Initializer, parser.Func(parseExpression)),
+		parser.Store(&attribute.Initializer, expression),
 		parser.Optional(parser.Type(Whitespace)),
 		parser.Token(Symbol, Semicolon),
 	)

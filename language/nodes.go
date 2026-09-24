@@ -9,8 +9,3 @@ type Method struct {
 	Args  *utils.List[*lexer.Token]
 	Calls *utils.List[*Call]
 }
-
-type Call struct {
-	Path *lexer.Token
-	Args *utils.List[*lexer.Token]
-}

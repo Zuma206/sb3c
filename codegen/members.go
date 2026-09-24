@@ -86,7 +86,7 @@ func generateVariable(target *sb3.TargetHnd, attribute *language.Member) error {
 	var initialValue any = ""
 	if attribute.AttributeOrMethod.Attribute.Initializer != nil {
 		var err error
-		initialValue, err = evaluateConstantExpression(attribute.AttributeOrMethod.Attribute.Initializer)
+		initialValue, err = evaluateConstantExpression(attribute.AttributeOrMethod.Attribute.Initializer.Token)
 		if err != nil {
 			return err
 		}

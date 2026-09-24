@@ -1,53 +1,34 @@
 package language
 
 import (
-	"errors"
-
 	"github.com/zuma206/sb3c/lexer"
 	"github.com/zuma206/sb3c/parser"
 	"github.com/zuma206/sb3c/utils"
 )
 
-var (
-	CallErr      = errors.New("failed to parse call")
-	CallCloseErr = errors.New("failed to parse call close")
-)
-
-func parseCall(p *parser.Parser) (*Call, error) {
-	call := &Call{}
-	var err error
-	if err = p.Parse([]*parser.ParseStep{
-		{Matcher: lexer.MatchAny(Path, Identifier), Result: &call.Path},
-		{Matcher: Symbol.WithSource(OpenBracket)},
-		{Matcher: Whitespace, Optional: true},
-	}); err != nil {
-		return nil, errors.Join(CallErr, err)
-	}
-	call.Args, err = parseCallArgs(p)
-	if err != nil {
-		return nil, err
-	}
-	if err = p.Parse([]*parser.ParseStep{
-		{Matcher: Symbol.WithSource(CloseBracket)},
-	}); err != nil {
-		return nil, errors.Join(CallCloseErr, err)
-	}
-	return call, nil
+type Call struct {
+	Path *lexer.Token
+	Args *utils.List[*lexer.Token]
 }
 
-func parseCallArgs(p *parser.Parser) (*utils.List[*lexer.Token], error) {
-	args := utils.NewList[*lexer.Token]()
-	for !p.Check(Symbol.WithSource(CloseBracket)) {
-		p.ConsumeIf(Whitespace)
-		arg, err := parseExpression(p)
-		if err != nil {
-			return nil, err
-		}
-		args.PushBack(arg)
-		p.ConsumeIf(Whitespace)
-		if _, err := p.ConsumeIf(Symbol.WithSource(Comma)); err != nil {
-			break
-		}
-	}
-	return args, nil
-}
+var call = parser.Value(func(call *Call) parser.Parse {
+	return parser.All(
+		parser.Store(&call.Path,
+			parser.OneOf(parser.Type(Identifier), parser.Type(Path)),
+		),
+		parser.Optional(parser.Type(Whitespace)),
+		parser.Token(Symbol, OpenBracket),
+		parser.Until(
+			parser.Affix(
+				parser.Optional(parser.Type(Whitespace)),
+				expression,
+				parser.All(
+					parser.Optional(parser.Type(Whitespace)),
+					parser.Token(Symbol, Comma),
+				),
+			),
+			parser.Token(Symbol, CloseBracket),
+		),
+		parser.Token(Symbol, CloseBracket),
+	)
+})
