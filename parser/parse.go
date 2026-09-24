@@ -11,6 +11,13 @@ type ParseValue[T any] interface {
 	ParseValue(*Parser) (T, error)
 }
 
+// Represents a parse step that can be checked for errors before parsing.
+// If an error would occur, it is returned, and the parser state is left unmodified.
+type CanParse interface {
+	Parse
+	CanParse(*Parser) error
+}
+
 // A single-function version of the `Parse` interface
 type ParseFunc func(*Parser) error
 

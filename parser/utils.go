@@ -73,12 +73,12 @@ func Affix[T any](prefix Parse, parseValue ParseValue[T], suffix Parse) ParseVal
 	}
 }
 
-// Parses a list of `T` until a specific token is reached and consumed
-func Until[T any](parseValue ParseValue[T], parseToken *parseToken) ParseValueFunc[*utils.List[T]] {
+// Continuously parses `T` into a list until `canParse` can be parsed
+func Until[T any](parseValue ParseValue[T], canParse CanParse) ParseValueFunc[*utils.List[T]] {
 	return func(p *Parser) (*utils.List[T], error) {
 		list := utils.NewList[T]()
 		for {
-			if err := parseToken.Parse(p); err != nil {
+			if err := canParse.CanParse(p); err != nil {
 				break
 			}
 			value, err := parseValue.ParseValue(p)
@@ -91,11 +91,11 @@ func Until[T any](parseValue ParseValue[T], parseToken *parseToken) ParseValueFu
 	}
 }
 
-// While the token described by `parseToken` can be consumed, `parseValue` will be parsed into a list
-func While[T any](parseToken *parseToken, parseValue ParseValue[T]) ParseValueFunc[*utils.List[T]] {
+// Continually parses `parseValue` whilst `canParse` can be parsed
+func While[T any](canParse CanParse, parseValue ParseValue[T]) ParseValueFunc[*utils.List[T]] {
 	return func(p *Parser) (*utils.List[T], error) {
 		list := utils.NewList[T]()
-		for parseToken.Parse(p) != nil {
+		for canParse.CanParse(p) != nil {
 			value, err := parseValue.ParseValue(p)
 			if err != nil {
 				return nil, err
@@ -104,4 +104,14 @@ func While[T any](parseToken *parseToken, parseValue ParseValue[T]) ParseValueFu
 		}
 		return list, nil
 	}
+}
+
+// See `Affix`
+func Suffix[T any](parseValue ParseValue[T], suffix Parse) ParseValue[T] {
+	return Affix(All(), parseValue, suffix)
+}
+
+// See `Affix`
+func Prefix[T any](prefix Parse, parseValue ParseValue[T]) ParseValue[T] {
+	return Affix(prefix, parseValue, All())
 }
