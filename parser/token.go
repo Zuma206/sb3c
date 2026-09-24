@@ -13,6 +13,19 @@ type ParseToken struct {
 	Src  *string
 }
 
+func Type(tokenType *lexer.Type) *ParseToken {
+	return &ParseToken{
+		Type: tokenType,
+	}
+}
+
+func Token(tokenType *lexer.Type, src string) *ParseToken {
+	return &ParseToken{
+		Type: tokenType,
+		Src:  &src,
+	}
+}
+
 var (
 	InvalidTokenTypeErr = errors.New("invalid token type")
 	InvalidTokenSrcErr  = errors.New("invalid token source")
