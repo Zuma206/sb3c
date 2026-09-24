@@ -38,7 +38,7 @@ type AttributeOrMethod struct {
 var attributeOrMethod = parser.Value(func(attributeOrMethod *AttributeOrMethod) parser.Parse {
 	return parser.Switch(
 		parser.Case(parser.Token(Symbol, OpenBracket),
-			parser.Store(&attributeOrMethod.Method, parser.Func(parseMethod))),
+			parser.Store(&attributeOrMethod.Method, method)),
 		parser.Case(parser.Token(Symbol, Equals),
 			parser.Store(&attributeOrMethod.Attribute, attribute)))
 })
