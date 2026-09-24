@@ -1,6 +1,8 @@
 package parser
 
 import (
+	"errors"
+
 	"github.com/zuma206/sb3c/utils"
 )
 
@@ -114,4 +116,13 @@ func Suffix[T any](parseValue ParseValue[T], suffix Parse) ParseValue[T] {
 // See `Affix`
 func Prefix[T any](prefix Parse, parseValue ParseValue[T]) ParseValue[T] {
 	return Affix(prefix, parseValue, All())
+}
+
+func Err(parentErr error, parse Parse) ParseFunc {
+	return func(p *Parser) error {
+		if err := parse.Parse(p); err != nil {
+			return errors.Join(parentErr, err)
+		}
+		return nil
+	}
 }

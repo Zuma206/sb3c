@@ -1,6 +1,8 @@
 package language
 
 import (
+	"errors"
+
 	"github.com/zuma206/sb3c/lexer"
 	"github.com/zuma206/sb3c/parser"
 	"github.com/zuma206/sb3c/utils"
@@ -12,21 +14,25 @@ type Member struct {
 	AttributeOrMethod *AttributeOrMethod
 }
 
+var FailedMemberParseErr = errors.New("failed member parse")
+
 var member = parser.Value(func(member *Member) parser.Parse {
-	return parser.All(
-		parser.Store(&member.Decorators,
-			parser.While(parser.Token(Symbol, At),
-				parser.Affix(
-					parser.Token(Symbol, At),
-					call,
-					parser.Optional(parser.Type(Whitespace)),
+	return parser.Err(FailedMemberParseErr,
+		parser.All(
+			parser.Store(&member.Decorators,
+				parser.While(parser.Token(Symbol, At),
+					parser.Affix(
+						parser.Token(Symbol, At),
+						call,
+						parser.Optional(parser.Type(Whitespace)),
+					),
 				),
 			),
+			parser.Optional(parser.Type(Whitespace)),
+			parser.Store(&member.Name, parser.Type(Identifier)),
+			parser.Optional(parser.Type(Whitespace)),
+			parser.Store(&member.AttributeOrMethod, attributeOrMethod),
 		),
-		parser.Optional(parser.Type(Whitespace)),
-		parser.Store(&member.Name, parser.Type(Identifier)),
-		parser.Optional(parser.Type(Whitespace)),
-		parser.Store(&member.AttributeOrMethod, attributeOrMethod),
 	)
 })
 
