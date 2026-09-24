@@ -10,10 +10,6 @@ type Method struct {
 	Calls *utils.List[*Call]
 }
 
-type Attribute struct {
-	Initializer *lexer.Token
-}
-
 type Call struct {
 	Path *lexer.Token
 	Args *utils.List[*lexer.Token]

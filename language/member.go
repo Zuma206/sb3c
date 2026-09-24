@@ -1,8 +1,6 @@
 package language
 
 import (
-	"errors"
-
 	"github.com/zuma206/sb3c/lexer"
 	"github.com/zuma206/sb3c/parser"
 	"github.com/zuma206/sb3c/utils"
@@ -12,11 +10,6 @@ type Member struct {
 	Decorators        *utils.List[*Call]
 	Name              *lexer.Token
 	AttributeOrMethod *AttributeOrMethod
-}
-
-type AttributeOrMethod struct {
-	Attribute *Attribute
-	Method    *Method
 }
 
 var member = parser.Value(func(member *Member) parser.Parse {
@@ -33,23 +26,28 @@ var member = parser.Value(func(member *Member) parser.Parse {
 	)
 })
 
+type AttributeOrMethod struct {
+	Attribute *Attribute
+	Method    *Method
+}
+
 var attributeOrMethod = parser.Value(func(attributeOrMethod *AttributeOrMethod) parser.Parse {
 	return parser.Switch(
 		parser.Case(parser.Token(Symbol, OpenBracket),
 			parser.Store(&attributeOrMethod.Method, parser.Func(parseMethod))),
 		parser.Case(parser.Token(Symbol, Equals),
-			parser.Store(&attributeOrMethod.Attribute, parser.Func(parseAttribute))))
+			parser.Store(&attributeOrMethod.Attribute, attribute)))
 })
 
-func parseAttribute(p *parser.Parser) (*Attribute, error) {
-	attribute := &Attribute{}
-	p.ConsumeIf(Whitespace)
-	attribute.Initializer, _ = parseExpression(p)
-	if err := p.Parse([]*parser.ParseStep{
-		{Matcher: Whitespace, Optional: true},
-		{Matcher: Symbol.WithSource(Semicolon)},
-	}); err != nil {
-		return nil, errors.Join(AttributeErr, err)
-	}
-	return attribute, nil
+type Attribute struct {
+	Initializer *lexer.Token
 }
+
+var attribute = parser.Value(func(attribute *Attribute) parser.Parse {
+	return parser.All(
+		parser.Optional(parser.Type(Whitespace)),
+		parser.Store(&attribute.Initializer, parser.Func(parseExpression)),
+		parser.Optional(parser.Type(Whitespace)),
+		parser.Token(Symbol, Semicolon),
+	)
+})
