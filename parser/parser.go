@@ -50,66 +50,7 @@ func (parser *Parser) Consume() (*lexer.Token, error) {
 	return token, nil
 }
 
-// Validates that the next token(s) in the list appease the corresponding matchers
-func (parser *Parser) Match(matchers ...lexer.Matcher) error {
-	for offset, matcher := range matchers {
-		token, err := parser.Peek(offset)
-		if err != nil {
-			return err
-		}
-		if err := matcher.MatchLexToken(token); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
 // Indicates if a parser has reached the end of the token list
 func (parser *Parser) Finished() bool {
 	return parser.index >= len(parser.tokens)
-}
-
-// Only consumes if the matcher matches the token being consumed, else errors
-func (parser *Parser) ConsumeIf(matcher lexer.Matcher) (*lexer.Token, error) {
-	if err := parser.Match(matcher); err != nil {
-		return nil, err
-	}
-	return parser.Consume()
-}
-
-type ParseStep struct {
-	// A pointer to write the token into if it matches. Can be nil,
-	//	meaning the token will be discarded
-	Result **lexer.Token
-	// The matcher to run against the token
-	Matcher lexer.Matcher
-	// Whether or not the parser should error if the matcher does
-	// not match
-	Optional bool
-}
-
-// Parse multiple tokens according to steps
-func (parser *Parser) Parse(steps []*ParseStep) error {
-	for i, step := range steps {
-		token, err := parser.ConsumeIf(step.Matcher)
-		if err != nil {
-			if !step.Optional {
-				return fmt.Errorf("%w (step %d)", err, i)
-			}
-			continue
-		}
-		if step.Result != nil {
-			*step.Result = token
-		}
-	}
-	return nil
-}
-
-// Checks if the current token matches the matcher, without consuming it
-func (parser *Parser) Check(matcher lexer.Matcher) bool {
-	token, err := parser.Peek(0)
-	if err != nil {
-		return false
-	}
-	return matcher.MatchLexToken(token) == nil
 }

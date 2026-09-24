@@ -28,20 +28,6 @@ func (tokenType *Type) MatchLexToken(token *Token) error {
 	return errors.Join(UnexpectedTokenTypeError, err)
 }
 
-// Returns a new matcher that matches on the given source as well as the tokenType
-func (tokenType *Type) WithSource(src string) MatcherFunc {
-	return func(token *Token) error {
-		if err := tokenType.MatchLexToken(token); err != nil {
-			return err
-		}
-		if src == token.Src {
-			return nil
-		}
-		return fmt.Errorf("%w: expected %q, found %q %w",
-			UnexpectedTokenSrcError, src, string(token.Src), &token.Pos)
-	}
-}
-
 // Creates a lex token type from it's human readable name, and a regex that matches it
 func NewType(name string, regex string) *Type {
 	return &Type{
