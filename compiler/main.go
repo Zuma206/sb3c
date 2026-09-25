@@ -42,7 +42,7 @@ func Main() error {
 	if result.Tokens != nil && inputs.args.Tokens {
 		visualisation.Visualise(result.Tokens)
 	}
-	if result.Program != nil && inputs.args.Syntax {
+	if result.Program != nil && result.Err == nil && inputs.args.Syntax {
 		visualisation.Visualise(result.Program)
 	}
 	if result.Err != nil {
