@@ -38,6 +38,7 @@ var class = parser.Value(func(class *Class) parser.Parse {
 					parser.Token(Symbol, CloseBrace),
 				),
 			),
+			parser.Token(Symbol, CloseBrace),
 		),
 	)
 })
