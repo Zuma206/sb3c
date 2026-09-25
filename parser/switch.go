@@ -5,24 +5,27 @@ import (
 	"fmt"
 )
 
+// Represents a checkable case and a parse step to execute if that case is valid
 type switchCase struct {
-	condition *parseToken
-	parse     Parse
+	canParse CanParse
+	parse    Parse
 }
 
-func Case(condition *parseToken, parse Parse) *switchCase {
+// Creates a condition -> parse steps pairing that can be checked by a parser.Switch
+func Case(canParse CanParse, parse Parse) *switchCase {
 	return &switchCase{
-		condition: condition,
-		parse:     parse,
+		canParse: canParse,
+		parse:    parse,
 	}
 }
 
 var NoCaseHitErr = errors.New("no case hit")
 
+// Checks the conditions of all cases and executes the first case to hit
 func Switch(cases ...*switchCase) ParseFunc {
 	return func(p *Parser) error {
 		for _, switchCase := range cases {
-			if switchCase.condition.Parse(p) != nil {
+			if switchCase.canParse.CanParse(p) != nil {
 				continue
 			}
 			return switchCase.parse.Parse(p)
@@ -31,7 +34,7 @@ func Switch(cases ...*switchCase) ParseFunc {
 		if err != nil {
 			return err
 		}
-		err = fmt.Errorf("token %s(%q, %w)", token.Type.Name, token.Src, &token.Pos)
+		err = fmt.Errorf("at token %s(%q, %w)", token.Type.Name, token.Src, &token.Pos)
 		return errors.Join(NoCaseHitErr, err)
 	}
 }

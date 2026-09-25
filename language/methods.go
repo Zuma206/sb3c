@@ -13,7 +13,6 @@ type Method struct {
 
 var method = parser.Value(func(method *Method) parser.Parse {
 	return parser.All(
-		parser.Optional(parser.Type(Whitespace)),
 		parser.Token(Symbol, OpenBracket),
 		parser.Store(&method.Args, parser.Until(
 			parser.Affix(

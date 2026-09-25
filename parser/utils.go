@@ -140,3 +140,13 @@ func Log(parseWithValue ParseValue[*lexer.Token]) ParseValueFunc[*lexer.Token] {
 		return token, nil
 	}
 }
+
+// Conditionally parses `parse` when `canParse` can be parsed
+func If(canParse CanParse, parse Parse) ParseFunc {
+	return func(p *Parser) error {
+		if canParse.CanParse(p) == nil {
+			return parse.Parse(p)
+		}
+		return nil
+	}
+}

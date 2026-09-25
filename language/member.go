@@ -41,12 +41,16 @@ type AttributeOrMethod struct {
 	Method    *Method
 }
 
+var FailedAttributeOrMethodParseErr = errors.New("failed attribute or method parse")
+
 var attributeOrMethod = parser.Value(func(attributeOrMethod *AttributeOrMethod) parser.Parse {
-	return parser.Switch(
-		parser.Case(parser.Token(Symbol, OpenBracket),
-			parser.Store(&attributeOrMethod.Method, method)),
-		parser.Case(parser.Token(Symbol, Equals),
-			parser.Store(&attributeOrMethod.Attribute, attribute)))
+	return parser.Err(FailedAttributeOrMethodParseErr,
+		parser.Switch(
+			parser.Case(parser.Token(Symbol, OpenBracket),
+				parser.Store(&attributeOrMethod.Method, method)),
+			parser.Case(parser.OneOf(parser.Token(Symbol, Equals), parser.Token(Symbol, Semicolon)),
+				parser.Store(&attributeOrMethod.Attribute, attribute))),
+	)
 })
 
 type Attribute struct {
@@ -55,9 +59,14 @@ type Attribute struct {
 
 var attribute = parser.Value(func(attribute *Attribute) parser.Parse {
 	return parser.All(
-		parser.Optional(parser.Type(Whitespace)),
-		parser.Store(&attribute.Initializer, expression),
-		parser.Optional(parser.Type(Whitespace)),
+		parser.If(parser.Token(Symbol, Equals),
+			parser.All(
+				parser.Token(Symbol, Equals),
+				parser.Optional(parser.Type(Whitespace)),
+				parser.Store(&attribute.Initializer, expression),
+				parser.Optional(parser.Type(Whitespace)),
+			),
+		),
 		parser.Token(Symbol, Semicolon),
 	)
 })
