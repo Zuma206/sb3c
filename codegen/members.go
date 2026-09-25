@@ -6,7 +6,6 @@ import (
 	"iter"
 
 	"github.com/zuma206/sb3c/language"
-	"github.com/zuma206/sb3c/lexer"
 	"github.com/zuma206/sb3c/sb3"
 	"github.com/zuma206/sb3c/utils"
 )
@@ -54,20 +53,7 @@ func generateBlock(call *language.Call) (*sb3.Block, error) {
 
 var NotEnoughArgumentsErr = errors.New("not enough arguments")
 
-var literalTypes = map[*lexer.Type]sb3.LiteralType{
-	language.NumberLiteral: sb3.LiteralNumber,
-	language.StringLiteral: sb3.LiteralString,
-}
-
-func getLiteralType(token *lexer.Token) sb3.LiteralType {
-	literalType, ok := literalTypes[token.Type]
-	if !ok {
-		panic("invalid literal type")
-	}
-	return literalType
-}
-
-func generateInputs(args *utils.List[*lexer.Token], keys []string) (map[string]*sb3.Input, error) {
+func generateInputs(args *utils.List[*language.Expression], keys []string) (map[string]*sb3.Input, error) {
 	inputs := make(map[string]*sb3.Input, len(keys))
 	next, stop := iter.Pull(args.Iter())
 	defer stop()
@@ -77,7 +63,7 @@ func generateInputs(args *utils.List[*lexer.Token], keys []string) (map[string]*
 			err := fmt.Errorf("expected %d got %d", len(keys), i)
 			return nil, errors.Join(NotEnoughArgumentsErr, err)
 		}
-		inputs[key] = sb3.LiteralInput(&sb3.Literal{Type: getLiteralType(arg), Value: arg.Src})
+		inputs[key] = expressionToInput(arg)
 	}
 	return inputs, nil
 }
@@ -86,7 +72,7 @@ func generateVariable(target *sb3.TargetHnd, attribute *language.Member) error {
 	var initialValue any = ""
 	if attribute.AttributeOrMethod.Attribute.Initializer != nil {
 		var err error
-		initialValue, err = evaluateConstantExpression(attribute.AttributeOrMethod.Attribute.Initializer.Token)
+		initialValue, err = expressionToConst(attribute.AttributeOrMethod.Attribute.Initializer)
 		if err != nil {
 			return err
 		}

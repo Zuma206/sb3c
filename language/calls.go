@@ -8,7 +8,7 @@ import (
 
 type Call struct {
 	Path *lexer.Token
-	Args *utils.List[*lexer.Token]
+	Args *utils.List[*Expression]
 }
 
 var call = parser.Value(func(call *Call) parser.ParseAny {
@@ -18,7 +18,7 @@ var call = parser.Value(func(call *Call) parser.ParseAny {
 		),
 		parser.Optional(parser.Type(Whitespace)),
 		parser.Token(Symbol, OpenBracket),
-		parser.Until(
+		parser.Store(&call.Args, parser.Until(
 			parser.Affix(
 				parser.Optional(parser.Type(Whitespace)),
 				expression,
@@ -28,7 +28,7 @@ var call = parser.Value(func(call *Call) parser.ParseAny {
 				),
 			),
 			parser.Token(Symbol, CloseBracket),
-		),
+		)),
 		parser.Token(Symbol, CloseBracket),
 	)
 })

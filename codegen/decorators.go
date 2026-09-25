@@ -11,6 +11,7 @@ import (
 func generateProcedureDecorators(method *language.Member, procedure *sb3.ProcedureHnd) error {
 	return generateDecorators(method, procedure, procedureDecoratorMappings)
 }
+
 func generateAttributeDecorators(method *language.Member, target *sb3.TargetHnd) error {
 	return generateDecorators(method, target, attributeDecoratorMappings)
 }
@@ -26,7 +27,7 @@ func generateDecorators[Handle any](member *language.Member, hnd Handle, mapping
 		}
 		args := []any{}
 		for arg := range decorator.Args.Iter() {
-			value, err := evaluateConstantExpression(arg)
+			value, err := expressionToConst(arg)
 			if err != nil {
 				return err
 			}

@@ -13,17 +13,23 @@ type Method struct {
 	Calls *utils.List[*Call]
 }
 
-var method = parser.Value(func(method *Method) parser.ParseAny {
-	return parser.All(
-		parser.Token(Symbol, OpenBracket),
-		parser.Store(&method.Args, args),
-		parser.Token(Symbol, CloseBracket),
-		parser.Optional(parser.Type(Whitespace)),
-		parser.Token(Symbol, OpenBrace),
-		parser.Store(&method.Calls, methodCalls),
-		parser.Token(Symbol, CloseBrace),
-	)
-})
+var FailedMethodParseErr = errors.New("failed method parse")
+
+var method = parser.Err(FailedMethodParseErr,
+	parser.Value(func(method *Method) parser.ParseAny {
+		return parser.All(
+			parser.Token(Symbol, OpenBracket),
+			parser.Store(&method.Args, args),
+			parser.Token(Symbol, CloseBracket),
+			parser.Optional(parser.Type(Whitespace)),
+			parser.Token(Symbol, OpenBrace),
+			parser.Store(&method.Calls, methodCalls),
+			parser.Token(Symbol, CloseBrace),
+		)
+	}),
+)
+
+var FailedMethodArgsParseErr = errors.New("failed method args parse")
 
 var args = parser.Until(
 	parser.Affix(
@@ -34,15 +40,20 @@ var args = parser.Until(
 	parser.Token(Symbol, CloseBracket),
 )
 
-var FailedMethodCallsParse = errors.New("failed method calls parse")
+var FailedMethodCallsParseErr = errors.New("failed method calls parse")
 
-var methodCalls = parser.Until(
-	parser.Suffix(call,
-		parser.All(
+var methodCalls = parser.Err(FailedMethodCallsParseErr,
+	parser.Until(
+		parser.Prefix(
 			parser.Optional(parser.Type(Whitespace)),
-			parser.Token(Symbol, Semicolon),
-			parser.Optional(parser.Type(Whitespace)),
+			parser.Suffix(call,
+				parser.All(
+					parser.Optional(parser.Type(Whitespace)),
+					parser.Token(Symbol, Semicolon),
+					parser.Optional(parser.Type(Whitespace)),
+				),
+			),
 		),
+		parser.Token(Symbol, CloseBrace),
 	),
-	parser.Token(Symbol, CloseBrace),
 )
