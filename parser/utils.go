@@ -99,7 +99,7 @@ func Until[T any](parseValue ParseValue[T], canParse CanParse) ParseValueFunc[*u
 func While[T any](canParse CanParse, parseValue ParseValue[T]) ParseValueFunc[*utils.List[T]] {
 	return func(p *Parser) (*utils.List[T], error) {
 		list := utils.NewList[T]()
-		for canParse.CanParse(p) != nil {
+		for canParse.CanParse(p) == nil {
 			value, err := parseValue.ParseValue(p)
 			if err != nil {
 				return nil, err
