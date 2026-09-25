@@ -3,7 +3,9 @@ package parser
 import (
 	"errors"
 
+	"github.com/zuma206/sb3c/lexer"
 	"github.com/zuma206/sb3c/utils"
+	"github.com/zuma206/sb3c/visualisation"
 )
 
 // Stores the value of a `ParseValue` step into a pointer
@@ -124,5 +126,17 @@ func Err(parentErr error, parse Parse) ParseFunc {
 			return errors.Join(parentErr, err)
 		}
 		return nil
+	}
+}
+
+// Logs a token as it's parsed
+func Log(parseWithValue ParseValue[*lexer.Token]) ParseValueFunc[*lexer.Token] {
+	return func(p *Parser) (*lexer.Token, error) {
+		token, err := parseWithValue.ParseValue(p)
+		if err != nil {
+			return nil, err
+		}
+		visualisation.Visualise(token)
+		return token, nil
 	}
 }
