@@ -31,25 +31,38 @@ var (
 	InvalidTokenSrcErr  = errors.New("invalid token source")
 )
 
+func (parseToken *parseToken) getErr(token *lexer.Token) error {
+	var (
+		expectedType = "*"
+		expectedSrc  = "*"
+	)
+	if parseToken.tokenType != nil {
+		expectedType = parseToken.tokenType.Name
+	}
+	if parseToken.src != nil {
+		expectedSrc = *parseToken.src
+	}
+	return fmt.Errorf("expected %s(%q) got %s(%q) %w",
+		expectedType, expectedSrc, token.Type.Name, token.Src, &token.Pos)
+}
+
 // Checks if the token can be parsed from the current parser state
-func (parseToken parseToken) CanParse(p *Parser) error {
+func (parseToken *parseToken) CanParse(p *Parser) error {
 	token, err := p.Peek(0)
 	if err != nil {
 		return err
 	}
 	if parseToken.tokenType != nil && token.Type != parseToken.tokenType {
-		err := fmt.Errorf("expected %q got %q %w", parseToken.tokenType.Name, token.Type.Name, &token.Pos)
-		return errors.Join(InvalidTokenTypeErr, err)
+		return errors.Join(InvalidTokenTypeErr, parseToken.getErr(token))
 	}
 	if parseToken.src != nil && token.Src != *parseToken.src {
-		err := fmt.Errorf("expected %q got %q %w", *parseToken.src, token.Src, &token.Pos)
-		return errors.Join(InvalidTokenSrcErr, err)
+		return errors.Join(InvalidTokenSrcErr, parseToken.getErr(token))
 	}
 	return nil
 }
 
 // Parses a single token described by `ParseToken`, returning it
-func (parseToken parseToken) ParseValue(p *Parser) (*lexer.Token, error) {
+func (parseToken *parseToken) ParseValue(p *Parser) (*lexer.Token, error) {
 	if err := parseToken.CanParse(p); err != nil {
 		return nil, err
 	}
@@ -57,7 +70,7 @@ func (parseToken parseToken) ParseValue(p *Parser) (*lexer.Token, error) {
 }
 
 // Parses a single token described by `ParseToken` and then discards it
-func (parseToken parseToken) Parse(p *Parser) error {
+func (parseToken *parseToken) Parse(p *Parser) error {
 	_, err := parseToken.ParseValue(p)
 	return err
 }
