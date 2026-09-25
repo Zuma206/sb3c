@@ -62,7 +62,7 @@ func (parseToken *parseToken) CanParse(p *Parser) error {
 }
 
 // Parses a single token described by `ParseToken`, returning it
-func (parseToken *parseToken) ParseValue(p *Parser) (*lexer.Token, error) {
+func (parseToken *parseToken) Parse(p *Parser) (*lexer.Token, error) {
 	if err := parseToken.CanParse(p); err != nil {
 		return nil, err
 	}
@@ -70,9 +70,8 @@ func (parseToken *parseToken) ParseValue(p *Parser) (*lexer.Token, error) {
 }
 
 // Parses a single token described by `ParseToken` and then discards it
-func (parseToken *parseToken) Parse(p *Parser) error {
-	_, err := parseToken.ParseValue(p)
-	return err
+func (parseToken *parseToken) ParseAny(p *Parser) (any, error) {
+	return parseToken.Parse(p)
 }
 
 type oneOf []*parseToken
@@ -81,11 +80,11 @@ func OneOf(parseToken *parseToken, parseTokens ...*parseToken) oneOf {
 	return append(oneOf{parseToken}, parseTokens...)
 }
 
-func (oneOf oneOf) ParseValue(p *Parser) (*lexer.Token, error) {
+func (oneOf oneOf) Parse(p *Parser) (*lexer.Token, error) {
 	var err error
 	for _, parseToken := range oneOf {
 		var token *lexer.Token
-		if token, err = parseToken.ParseValue(p); err == nil {
+		if token, err = parseToken.Parse(p); err == nil {
 			return token, err
 		}
 	}
@@ -102,7 +101,6 @@ func (oneOf oneOf) CanParse(p *Parser) error {
 	return err
 }
 
-func (oneOf oneOf) Parse(p *Parser) error {
-	_, err := oneOf.ParseValue(p)
-	return err
+func (oneOf oneOf) ParseAny(p *Parser) (any, error) {
+	return oneOf.Parse(p)
 }

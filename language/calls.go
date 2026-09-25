@@ -11,7 +11,7 @@ type Call struct {
 	Args *utils.List[*lexer.Token]
 }
 
-var call = parser.Value(func(call *Call) parser.Parse {
+var call = parser.Value(func(call *Call) parser.ParseAny {
 	return parser.All(
 		parser.Store(&call.Path,
 			parser.OneOf(parser.Type(Identifier), parser.Type(Path)),

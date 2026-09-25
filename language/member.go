@@ -16,7 +16,7 @@ type Member struct {
 
 var FailedMemberParseErr = errors.New("failed member parse")
 
-var member = parser.Value(func(member *Member) parser.Parse {
+var member = parser.Value(func(member *Member) parser.ParseAny {
 	return parser.Err(FailedMemberParseErr,
 		parser.All(
 			parser.Store(&member.Decorators,
@@ -43,7 +43,7 @@ type AttributeOrMethod struct {
 
 var FailedAttributeOrMethodParseErr = errors.New("failed attribute or method parse")
 
-var attributeOrMethod = parser.Value(func(attributeOrMethod *AttributeOrMethod) parser.Parse {
+var attributeOrMethod = parser.Value(func(attributeOrMethod *AttributeOrMethod) parser.ParseAny {
 	return parser.Err(FailedAttributeOrMethodParseErr,
 		parser.Switch(
 			parser.Case(parser.Token(Symbol, OpenBracket),
@@ -57,7 +57,7 @@ type Attribute struct {
 	Initializer *Expression
 }
 
-var attribute = parser.Value(func(attribute *Attribute) parser.Parse {
+var attribute = parser.Value(func(attribute *Attribute) parser.ParseAny {
 	return parser.All(
 		parser.If(parser.Token(Symbol, Equals),
 			parser.All(

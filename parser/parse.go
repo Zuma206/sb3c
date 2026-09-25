@@ -1,49 +1,48 @@
 package parser
 
-// Represents a parse step
-type Parse interface {
-	Parse(*Parser) error
-}
+import "github.com/zuma206/sb3c/utils"
 
 // Represents a parse step that constructs a value
-type ParseValue[T any] interface {
-	Parse
-	ParseValue(*Parser) (T, error)
+type Parse[T any] interface {
+	Parse(*Parser) (T, error)
+	ParseAny
+}
+
+type ParseAny interface {
+	ParseAny(*Parser) (any, error)
 }
 
 // Represents a parse step that can be checked for errors before parsing.
 // If an error would occur, it is returned, and the parser state is left unmodified.
-type CanParse interface {
-	Parse
+type CanParse[T any] interface {
+	Parse[T]
+	CanParseAny
+}
+
+type CanParseAny interface {
 	CanParse(*Parser) error
 }
 
 // A single-function version of the `Parse` interface
-type ParseFunc func(*Parser) error
+type ParseFunc[T any] func(*Parser) (T, error)
 
 // Calls the underlying `ParseFunc`
-func (parse ParseFunc) Parse(p *Parser) error {
-	return parse(p)
+func (parseFunc ParseFunc[T]) Parse(p *Parser) (T, error) {
+	return parseFunc(p)
 }
 
-// A single-function version of the `ParseValue` interface
-type ParseValueFunc[T any] func(*Parser) (T, error)
-
-// Calls the underlying `ParseValueFunc`
-func (parseValue ParseValueFunc[T]) ParseValue(p *Parser) (T, error) {
-	return parseValue(p)
-}
-
-// Calls the underlying `ParseValueFunc`, discarding the value
-func (parseValue ParseValueFunc[T]) Parse(p *Parser) error {
-	_, err := parseValue.ParseValue(p)
-	return err
+// Calls `Parse` and casts to any
+func (parseFunc ParseFunc[T]) ParseAny(p *Parser) (any, error) {
+	return parseFunc.Parse(p)
 }
 
 // Parses an optional token
-func Optional(parseToken *parseToken) ParseFunc {
-	return func(p *Parser) error {
-		parseToken.Parse(p)
-		return nil
+func Optional[T any](canParse CanParse[T]) ParseFunc[utils.UnitType] {
+	return func(p *Parser) (utils.UnitType, error) {
+		if canParse.CanParse(p) == nil {
+			_, err := canParse.Parse(p)
+			return utils.Unit, err
+		}
+		return utils.Unit, nil
 	}
 }

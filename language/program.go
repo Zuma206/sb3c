@@ -9,7 +9,7 @@ type Program struct {
 	Classes *utils.List[*Class]
 }
 
-var ParseProgram = parser.Value(func(program *Program) parser.Parse {
+var ParseProgram = parser.Value(func(program *Program) parser.ParseAny {
 	return parser.Store(&program.Classes,
 		parser.UntilFinished(
 			parser.Affix(

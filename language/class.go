@@ -16,7 +16,7 @@ type Class struct {
 
 var FailedClassParseErr = errors.New("failed class parse")
 
-var class = parser.Value(func(class *Class) parser.Parse {
+var class = parser.Value(func(class *Class) parser.ParseAny {
 	return parser.Err(FailedClassParseErr,
 		parser.All(
 			parser.Token(Keyword, ClassKeyword),

@@ -8,36 +8,36 @@ import (
 	"github.com/zuma206/sb3c/visualisation"
 )
 
-// Stores the value of a `ParseValue` step into a pointer
-func Store[T any](result *T, parseValue ParseValue[T]) ParseFunc {
-	return func(p *Parser) error {
-		value, err := parseValue.ParseValue(p)
+// Stores the value of a `Parse` step into a pointer
+func Store[T any](result *T, parse Parse[T]) ParseFunc[T] {
+	return func(p *Parser) (T, error) {
+		value, err := parse.Parse(p)
 		if err != nil {
-			return err
+			return value, err
 		}
 		*result = value
-		return nil
+		return value, err
 	}
 }
 
 // Parses all steps in sequence
-func All(all ...Parse) ParseFunc {
-	return func(p *Parser) error {
+func All(all ...ParseAny) ParseFunc[utils.UnitType] {
+	return func(p *Parser) (utils.UnitType, error) {
 		for _, parse := range all {
-			if err := parse.Parse(p); err != nil {
-				return err
+			if _, err := parse.ParseAny(p); err != nil {
+				return utils.Unit, err
 			}
 		}
-		return nil
+		return utils.Unit, nil
 	}
 }
 
 // Continually parses until the parser is finished
-func UntilFinished[T any](parse ParseValue[T]) ParseValueFunc[*utils.List[T]] {
+func UntilFinished[T any](parse Parse[T]) ParseFunc[*utils.List[T]] {
 	return func(p *Parser) (*utils.List[T], error) {
 		list := utils.NewList[T]()
 		for !p.Finished() {
-			value, err := parse.ParseValue(p)
+			value, err := parse.Parse(p)
 			if err != nil {
 				return nil, err
 			}
@@ -48,29 +48,25 @@ func UntilFinished[T any](parse ParseValue[T]) ParseValueFunc[*utils.List[T]] {
 }
 
 // Creates a value inline whilst parsing
-func Value[T any](f func(value *T) Parse) ParseValueFunc[*T] {
+func Value[T any](f func(value *T) ParseAny) ParseFunc[*T] {
 	return func(p *Parser) (*T, error) {
 		var value T
-		return &value, f(&value).Parse(p)
+		_, err := f(&value).ParseAny(p)
+		return &value, err
 	}
 }
 
-// Constructs a `ParseValueFunc[T]` with inferrance
-func Func[T any](parseValueFunc ParseValueFunc[T]) ParseValueFunc[T] {
-	return parseValueFunc
-}
-
 // Adds a prefix and suffix to a `ParseValue` whilst preserving the value
-func Affix[T any](prefix Parse, parseValue ParseValue[T], suffix Parse) ParseValueFunc[T] {
+func Affix[T any](prefix ParseAny, parse Parse[T], suffix ParseAny) ParseFunc[T] {
 	return func(p *Parser) (value T, err error) {
-		if err = prefix.Parse(p); err != nil {
+		if _, err = prefix.ParseAny(p); err != nil {
 			return value, err
 		}
-		value, err = parseValue.ParseValue(p)
+		value, err = parse.Parse(p)
 		if err != nil {
 			return value, err
 		}
-		if err = suffix.Parse(p); err != nil {
+		if _, err = suffix.ParseAny(p); err != nil {
 			return value, err
 		}
 		return value, err
@@ -78,14 +74,14 @@ func Affix[T any](prefix Parse, parseValue ParseValue[T], suffix Parse) ParseVal
 }
 
 // Continuously parses `T` into a list until `canParse` can be parsed
-func Until[T any](parseValue ParseValue[T], canParse CanParse) ParseValueFunc[*utils.List[T]] {
+func Until[T any](parse Parse[T], canParse CanParseAny) ParseFunc[*utils.List[T]] {
 	return func(p *Parser) (*utils.List[T], error) {
 		list := utils.NewList[T]()
 		for {
 			if err := canParse.CanParse(p); err == nil {
 				break
 			}
-			value, err := parseValue.ParseValue(p)
+			value, err := parse.Parse(p)
 			if err != nil {
 				return nil, err
 			}
@@ -96,11 +92,11 @@ func Until[T any](parseValue ParseValue[T], canParse CanParse) ParseValueFunc[*u
 }
 
 // Continually parses `parseValue` whilst `canParse` can be parsed
-func While[T any](canParse CanParse, parseValue ParseValue[T]) ParseValueFunc[*utils.List[T]] {
+func While[T any](canParse CanParseAny, parse Parse[T]) ParseFunc[*utils.List[T]] {
 	return func(p *Parser) (*utils.List[T], error) {
 		list := utils.NewList[T]()
 		for canParse.CanParse(p) == nil {
-			value, err := parseValue.ParseValue(p)
+			value, err := parse.Parse(p)
 			if err != nil {
 				return nil, err
 			}
@@ -111,28 +107,30 @@ func While[T any](canParse CanParse, parseValue ParseValue[T]) ParseValueFunc[*u
 }
 
 // See `Affix`
-func Suffix[T any](parseValue ParseValue[T], suffix Parse) ParseValue[T] {
-	return Affix(All(), parseValue, suffix)
+func Suffix[T any](parse Parse[T], suffix ParseAny) ParseFunc[T] {
+	return Affix(All(), parse, suffix)
 }
 
 // See `Affix`
-func Prefix[T any](prefix Parse, parseValue ParseValue[T]) ParseValue[T] {
-	return Affix(prefix, parseValue, All())
+func Prefix[T any](prefix ParseAny, parse Parse[T]) ParseFunc[T] {
+	return Affix(prefix, parse, All())
 }
 
-func Err(parentErr error, parse Parse) ParseFunc {
-	return func(p *Parser) error {
-		if err := parse.Parse(p); err != nil {
-			return errors.Join(parentErr, err)
+// Joins any parse errors with a given parent error
+func Err[T any](parentErr error, parse Parse[T]) ParseFunc[T] {
+	return func(p *Parser) (T, error) {
+		value, err := parse.Parse(p)
+		if err != nil {
+			return value, errors.Join(parentErr, err)
 		}
-		return nil
+		return value, nil
 	}
 }
 
 // Logs a token as it's parsed
-func Log(parseWithValue ParseValue[*lexer.Token]) ParseValueFunc[*lexer.Token] {
+func Log(parse Parse[*lexer.Token]) ParseFunc[*lexer.Token] {
 	return func(p *Parser) (*lexer.Token, error) {
-		token, err := parseWithValue.ParseValue(p)
+		token, err := parse.Parse(p)
 		if err != nil {
 			return nil, err
 		}
@@ -142,11 +140,12 @@ func Log(parseWithValue ParseValue[*lexer.Token]) ParseValueFunc[*lexer.Token] {
 }
 
 // Conditionally parses `parse` when `canParse` can be parsed
-func If(canParse CanParse, parse Parse) ParseFunc {
-	return func(p *Parser) error {
+func If(canParse CanParseAny, parse ParseAny) ParseFunc[utils.UnitType] {
+	return func(p *Parser) (utils.UnitType, error) {
 		if canParse.CanParse(p) == nil {
-			return parse.Parse(p)
+			_, err := parse.ParseAny(p)
+			return utils.Unit, err
 		}
-		return nil
+		return utils.Unit, nil
 	}
 }
