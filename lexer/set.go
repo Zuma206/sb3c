@@ -47,7 +47,7 @@ func (tokenParser *TokenParser) CanParse(p *parser.Parser[*Token]) error {
 		return err
 	}
 	if token.Src != tokenParser.src {
-		err := fmt.Errorf("expected %q, got %q", tokenParser.src, token.Src)
+		err := fmt.Errorf("expected %q, got %q %w", tokenParser.src, token.Src, &token.Pos)
 		return errors.Join(InvalidTokenSourceErr, err)
 	}
 	return nil

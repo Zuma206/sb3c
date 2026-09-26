@@ -21,7 +21,7 @@ func (tokenType *Type) CanParse(p *parser.Parser[*Token]) error {
 		return err
 	}
 	if token.Type != tokenType {
-		err := fmt.Errorf("expected %q, got %q", tokenType.Name, token.Type.Name)
+		err := fmt.Errorf("expected %q, got %q %w", tokenType.Name, token.Type.Name, &token.Pos)
 		return errors.Join(InvalidTokenTypeErr, err)
 	}
 	return nil
