@@ -6,23 +6,15 @@ import (
 	"strings"
 )
 
-// Lexes a file into a list of tokens and errors
 type Lexer struct {
-	// Lex errors encountered so far
-	errors []error
-	// Lex tokens parsed so far
-	tokens []*Token
-	// The current errorSection being encountered by the lexer
+	errors       []error
+	tokens       []*Token
 	errorSection *Section
 	errorSrc     strings.Builder
-	// The types of tokens the lexer can parse
-	types []*Type
-	// The current working position of the lexer in the file
-	pos Position
-	// The source code being lexed
-	src string
-	// The index of the next token to be processed
-	next int
+	types        []*Type
+	pos          Position
+	src          string
+	next         int
 }
 
 func NewLexer(src string, types []*Type) *Lexer {
@@ -41,7 +33,6 @@ func NewLexer(src string, types []*Type) *Lexer {
 	}
 }
 
-// Constructs a new token with a given type, with the src of a given length
 func (lexer *Lexer) newToken(tokenType *Type, len int) *Token {
 	return &Token{
 		Type: tokenType,
@@ -52,7 +43,6 @@ func (lexer *Lexer) newToken(tokenType *Type, len int) *Token {
 	}
 }
 
-// Find the longest token match out of all the token types
 func (lexer *Lexer) getLongestMatch() (*Token, bool) {
 	var token *Token
 	for _, tokenType := range lexer.types {
@@ -67,7 +57,6 @@ func (lexer *Lexer) getLongestMatch() (*Token, bool) {
 	return token, true
 }
 
-// Consumes source code, incrementing the lexer position past it
 func (lexer *Lexer) consume(src string) {
 	lexer.pos.LineOffset += len(src)
 	lexer.pos.Index += len(src)
@@ -79,7 +68,6 @@ func (lexer *Lexer) consume(src string) {
 	}
 }
 
-// Consumes source code into the current error
 func (lexer *Lexer) consumeIntoError() {
 	if lexer.errorSection == nil {
 		lexer.errorSection = &Section{Pos: lexer.pos}
@@ -92,7 +80,6 @@ func (lexer *Lexer) consumeIntoError() {
 
 var LexErr = errors.New("lex error")
 
-// Consumes the current error into the errors slice
 func (lexer *Lexer) consumeError() {
 	if lexer.errorSection != nil {
 		lexer.errorSection.Src = lexer.errorSrc.String()
@@ -104,7 +91,6 @@ func (lexer *Lexer) consumeError() {
 
 var EOFError = errors.New("eof")
 
-// Parses the next token out of the source code, returning an error if the end of file is hit
 func (lexer *Lexer) parseToken() (*Token, error) {
 	for lexer.pos.Index < len(lexer.src) {
 		token, ok := lexer.getLongestMatch()
@@ -121,7 +107,6 @@ func (lexer *Lexer) parseToken() (*Token, error) {
 
 var IndexOutOfBounds = errors.New("index out of bounds")
 
-// Returns the token at index i relative to the next token
 func (lexer *Lexer) Peek(i int) (*Token, error) {
 	index := lexer.next + i
 	if index < 0 {
@@ -139,7 +124,6 @@ func (lexer *Lexer) Peek(i int) (*Token, error) {
 	return lexer.tokens[index], nil
 }
 
-// Returns the next token and increments the next value
 func (lexer *Lexer) Next() (*Token, error) {
 	token, err := lexer.Peek(0)
 	if err != nil {
@@ -149,7 +133,6 @@ func (lexer *Lexer) Next() (*Token, error) {
 	return token, err
 }
 
-// Parses all of the file
 func (lexer *Lexer) parseAll() {
 	var err error
 	for err == nil {
@@ -157,13 +140,11 @@ func (lexer *Lexer) parseAll() {
 	}
 }
 
-// Parse the remainder of the file and return all parsed tokens
 func (lexer *Lexer) GetTokens() []*Token {
 	lexer.parseAll()
 	return lexer.tokens
 }
 
-// Parse the remainder of the file and return all errors
 func (lexer *Lexer) GetErrors() []error {
 	lexer.parseAll()
 	return lexer.errors

@@ -16,7 +16,7 @@ type Class struct {
 
 var FailedClassParseErr = errors.New("failed class parse")
 
-var class = parser.Returns(func(class *Class) parser.StepAny {
+var class = parser.Returns(func(class *Class) parser.StepAny[*lexer.Token] {
 	return parser.Err(FailedClassParseErr,
 		parser.Sequence(
 			parser.Token(Keyword, ClassKeyword),

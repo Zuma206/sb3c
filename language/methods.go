@@ -16,7 +16,7 @@ type Method struct {
 var FailedMethodParseErr = errors.New("failed method parse")
 
 var method = parser.Err(FailedMethodParseErr,
-	parser.Returns(func(method *Method) parser.StepAny {
+	parser.Returns(func(method *Method) parser.StepAny[*lexer.Token] {
 		return parser.Sequence(
 			parser.Token(Symbol, OpenBracket),
 			parser.Optional(parser.Type(Whitespace)),

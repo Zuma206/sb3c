@@ -1,6 +1,7 @@
 package language
 
 import (
+	"github.com/zuma206/sb3c/lexer"
 	"github.com/zuma206/sb3c/parser"
 	"github.com/zuma206/sb3c/utils"
 )
@@ -9,7 +10,7 @@ type Program struct {
 	Classes *utils.List[*Class]
 }
 
-var ParseProgram = parser.Returns(func(program *Program) parser.StepAny {
+var ParseProgram = parser.Returns(func(program *Program) parser.StepAny[*lexer.Token] {
 	return parser.Set(&program.Classes,
 		parser.UntilFinished(
 			parser.Affix(

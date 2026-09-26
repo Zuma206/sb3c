@@ -57,7 +57,7 @@ type Attribute struct {
 	Initializer *Expression
 }
 
-var attribute = parser.Returns(func(attribute *Attribute) parser.StepAny {
+var attribute = parser.Returns(func(attribute *Attribute) parser.StepAny[*lexer.Token] {
 	return parser.Sequence(
 		parser.If(parser.Token(Symbol, Equals), parser.ConsumeCondition,
 			parser.Sequence(

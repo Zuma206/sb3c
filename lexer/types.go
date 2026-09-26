@@ -1,51 +1,26 @@
 package lexer
 
 import (
-	"errors"
-	"fmt"
 	"regexp"
-	"strings"
 )
 
-// Represents a type of token a lexer can encounter
 type Type struct {
-	// The type's human readable name
 	Name  string
 	regex *regexp.Regexp
 }
 
-var (
-	UnexpectedTokenTypeError = errors.New("unexpected token type")
-	UnexpectedTokenSrcError  = errors.New("unexpected token source")
-)
-
-// Makes Type implement Matcher interface, checking if the token matches the type
-func (tokenType *Type) MatchLexToken(token *Token) error {
-	if token.Type == tokenType {
-		return nil
-	}
-	err := fmt.Errorf("expected %s, found %s %w", tokenType.Name, token.Type.Name, &token.Pos)
-	return errors.Join(UnexpectedTokenTypeError, err)
+type TypeBuilder interface {
+	BuildType() (*Type, error)
 }
 
-// Creates a lex token type from it's human readable name, and a regex that matches it
-func NewType(name string, regex string) *Type {
-	return &Type{
-		Name:  name,
-		regex: regexp.MustCompile("^" + regex),
-	}
-}
-
-// Creates a lex token type that matches to any one string from a set
-func NewTypeSet(name string, set []string) *Type {
-	var regex strings.Builder
-	regex.WriteRune('(')
-	for i, str := range set {
-		if i > 0 {
-			regex.WriteRune('|')
+func MustBuildTypes(typeBuilders ...TypeBuilder) []*Type {
+	types := make([]*Type, len(typeBuilders))
+	for i, typeBuilder := range typeBuilders {
+		var err error
+		types[i], err = typeBuilder.BuildType()
+		if err != nil {
+			panic(err)
 		}
-		regex.WriteString(regexp.QuoteMeta(str))
 	}
-	regex.WriteRune(')')
-	return NewType(name, regex.String())
+	return types
 }
