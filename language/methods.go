@@ -19,7 +19,7 @@ var method = parser.Err(FailedMethodParseErr,
 	parser.Value(func(method *Method) parser.ParseAny {
 		return parser.All(
 			parser.Token(Symbol, OpenBracket),
-			parser.Store(&method.Args, args),
+			parser.Optional(parser.Type(Whitespace)),
 			parser.Token(Symbol, CloseBracket),
 			parser.Optional(parser.Type(Whitespace)),
 			parser.Token(Symbol, OpenBrace),
@@ -27,18 +27,6 @@ var method = parser.Err(FailedMethodParseErr,
 			parser.Token(Symbol, CloseBrace),
 		)
 	}),
-)
-
-var FailedMethodArgsParseErr = errors.New("failed method args parse")
-
-var args = parser.Until(
-	parser.Affix(
-		parser.Optional(parser.Type(Whitespace)),
-		parser.Type(Identifier),
-		parser.Optional(parser.Type(Whitespace)),
-	),
-	parser.Token(Symbol, CloseBracket),
-	parser.SkipConsumingCondition,
 )
 
 var FailedMethodCallsParseErr = errors.New("failed method calls parse")
