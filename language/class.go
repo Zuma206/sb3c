@@ -4,7 +4,7 @@ import (
 	"errors"
 
 	"github.com/zuma206/sb3c/lexer"
-	"github.com/zuma206/sb3c/parser"
+	. "github.com/zuma206/sb3c/parser"
 	"github.com/zuma206/sb3c/utils"
 )
 
@@ -16,28 +16,17 @@ type Class struct {
 
 var FailedClassParseErr = errors.New("failed class parse")
 
-var class = parser.Returns(func(class *Class) parser.StepAny[*lexer.Token] {
-	return parser.Err(FailedClassParseErr,
-		parser.Sequence(
-			parser.Token(Keyword, ClassKeyword),
-			parser.Type(Whitespace),
-			parser.Set(&class.Name, parser.Type(Identifier)),
-			parser.Type(Whitespace),
-			parser.Token(Keyword, Extends),
-			parser.Type(Whitespace),
-			parser.Set(&class.Super, parser.Type(Identifier)),
-			parser.Optional(parser.Type(Whitespace)),
-			parser.Token(Symbol, OpenBrace),
-			parser.Set(&class.Members,
-				parser.Until(
-					parser.Affix(
-						parser.Optional(parser.Type(Whitespace)),
-						member,
-						parser.Optional(parser.Type(Whitespace)),
-					),
-					parser.Token(Symbol, CloseBrace),
-					parser.ConsumeCondition,
-				),
+var class = Returns(func(class *Class) StepAny[*lexer.Token] {
+	return Err(FailedClassParseErr,
+		Sequence(
+			ClassKeyword, Whitespace, Set(&class.Name, Identifier),
+			Whitespace, Extends, Whitespace, Set(&class.Super, Identifier),
+			Optional(Whitespace), OpenBrace,
+			Set(&class.Members, Until(
+				Affix(Optional(Whitespace), member, Optional(Whitespace)),
+				CloseBrace,
+				ConsumeCondition,
+			),
 			),
 		),
 	)

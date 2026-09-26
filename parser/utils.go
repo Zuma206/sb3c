@@ -10,7 +10,7 @@ func Set[T any, U any](result *T, step Step[T, U]) StepFunc[T, U] {
 	return func(p *Parser[U]) (T, error) {
 		value, err := step.Parse(p)
 		if err != nil {
-			return value, err
+			return utils.Zero[T](), err
 		}
 		*result = value
 		return value, err
@@ -84,4 +84,34 @@ func Optional[T any, U any](step CheckableStep[T, U]) StepFunc[utils.UnitType, U
 		}
 		return utils.Unit, nil
 	}
+}
+
+type oneOf[T any, U any] []CheckableStep[T, U]
+
+func OneOf[T any, U any](options ...CheckableStep[T, U]) oneOf[T, U] {
+	return options
+}
+
+func (oneOf oneOf[T, U]) CanParse(p *Parser[U]) error {
+	var err error
+	for _, option := range oneOf {
+		if err = option.CanParse(p); err == nil {
+			return nil
+		}
+	}
+	return err
+}
+
+func (oneOf oneOf[T, U]) Parse(p *Parser[U]) (T, error) {
+	var err error
+	for _, option := range oneOf {
+		if err = option.CanParse(p); err == nil {
+			return option.Parse(p)
+		}
+	}
+	return utils.Zero[T](), err
+}
+
+func (oneOf oneOf[T, U]) ParseAny(p *Parser[U]) (any, error) {
+	return oneOf.Parse(p)
 }

@@ -2,16 +2,13 @@ package language
 
 import (
 	"github.com/zuma206/sb3c/lexer"
-	"github.com/zuma206/sb3c/parser"
+	. "github.com/zuma206/sb3c/parser"
 )
 
 type Expression struct {
 	Token *lexer.Token
 }
 
-var expression = parser.Returns(func(expression *Expression) parser.StepAny[*lexer.Token] {
-	return parser.Set(
-		&expression.Token,
-		parser.OneOf(parser.Type(NumberLiteral), parser.Type(StringLiteral)),
-	)
+var expression = Returns(func(expression *Expression) StepAny[*lexer.Token] {
+	return Set(&expression.Token, OneOf(NumberLiteral, StringLiteral))
 })

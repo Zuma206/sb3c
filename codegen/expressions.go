@@ -28,9 +28,9 @@ func expressionToConst(expression *language.Expression) (any, error) {
 
 func tokenToConst(token *lexer.Token) (any, error) {
 	switch token.Type {
-	case language.NumberLiteral:
+	case language.NumberLiteral.Type:
 		return strconv.ParseFloat(token.Src, 64)
-	case language.StringLiteral:
+	case language.StringLiteral.Type:
 		return parseStringLiteral(token.Src), nil
 	default:
 		panic("malformed single-token expression")
@@ -55,9 +55,9 @@ func expressionToInput(expression *language.Expression) *sb3.Input {
 
 func tokenToInput(token *lexer.Token) *sb3.Input {
 	switch token.Type {
-	case language.NumberLiteral:
+	case language.NumberLiteral.Type:
 		return sb3.LiteralInput(sb3.LiteralNumber, token.Src)
-	case language.StringLiteral:
+	case language.StringLiteral.Type:
 		return sb3.LiteralInput(sb3.LiteralString, parseStringLiteral(token.Src))
 	default:
 		panic("malformed single-token expression")

@@ -4,7 +4,7 @@ import (
 	"errors"
 
 	"github.com/zuma206/sb3c/lexer"
-	"github.com/zuma206/sb3c/parser"
+	. "github.com/zuma206/sb3c/parser"
 	"github.com/zuma206/sb3c/utils"
 )
 
@@ -15,35 +15,25 @@ type Call struct {
 
 var FailedCallParseErr = errors.New("failed call parse")
 
-var call = parser.Err(FailedCallParseErr,
-	parser.Returns(func(call *Call) parser.StepAny {
-		return parser.Sequence(
-			parser.Set(&call.Path,
-				parser.OneOf(parser.Type(Identifier), parser.Type(Path)),
+var call = Err(FailedCallParseErr,
+	Returns(func(call *Call) StepAny[*lexer.Token] {
+		return Sequence(
+			Set(&call.Path, OneOf(Identifier, Path)),
+			Optional(Whitespace), OpenBracket,
+			Set(&call.Args,
+				If(CloseBracket, SkipConsumingCondition,
+					None[*Expression, *lexer.Token](), callArgs),
 			),
-			parser.Optional(parser.Type(Whitespace)),
-			parser.Token(Symbol, OpenBracket),
-			parser.Set(&call.Args,
-				parser.If(parser.Token(Symbol, CloseBracket), parser.SkipConsumingCondition,
-					parser.None[*Expression](),
-					callArgs,
-				),
-			),
-			parser.Token(Symbol, CloseBracket),
+			CloseBracket,
 		)
 	}),
 )
 
 var FailedCallArgsParseErr = errors.New("failed call args parse")
 
-var callArgs = parser.Err(FailedCallArgsParseErr,
-	parser.DoWhile(
-		parser.Affix(
-			parser.Optional(parser.Type(Whitespace)),
-			expression,
-			parser.Optional(parser.Type(Whitespace)),
-		),
-		parser.Token(Symbol, Comma),
-		parser.ConsumeCondition,
+var callArgs = Err(FailedCallArgsParseErr,
+	DoWhile(
+		Affix(Optional(Whitespace), expression, Optional(Whitespace)),
+		Comma, ConsumeCondition,
 	),
 )
