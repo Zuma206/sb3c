@@ -90,3 +90,10 @@ func Log(parse Parse[*lexer.Token]) ParseFunc[*lexer.Token] {
 		return token, nil
 	}
 }
+
+// Parses none of type T
+func None[T any]() ParseFunc[*utils.List[T]] {
+	return func(_ *Parser) (*utils.List[T], error) {
+		return utils.NewList[T](), nil
+	}
+}
