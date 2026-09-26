@@ -32,21 +32,6 @@ func All(all ...ParseAny) ParseFunc[utils.UnitType] {
 	}
 }
 
-// Continually parses until the parser is finished
-func UntilFinished[T any](parse Parse[T]) ParseFunc[*utils.List[T]] {
-	return func(p *Parser) (*utils.List[T], error) {
-		list := utils.NewList[T]()
-		for !p.Finished() {
-			value, err := parse.Parse(p)
-			if err != nil {
-				return nil, err
-			}
-			list.PushBack(value)
-		}
-		return list, nil
-	}
-}
-
 // Creates a value inline whilst parsing
 func Value[T any](f func(value *T) ParseAny) ParseFunc[*T] {
 	return func(p *Parser) (*T, error) {
@@ -70,46 +55,6 @@ func Affix[T any](prefix ParseAny, parse Parse[T], suffix ParseAny) ParseFunc[T]
 			return value, err
 		}
 		return value, err
-	}
-}
-
-// Continuously parses `T` into a list until `canParse` can be parsed
-func Until[T any](parse Parse[T], canParse CanParseAny, consume ShouldConsumeCondition) ParseFunc[*utils.List[T]] {
-	return func(p *Parser) (*utils.List[T], error) {
-		list := utils.NewList[T]()
-		for canParse.CanParse(p) != nil {
-			value, err := parse.Parse(p)
-			if err != nil {
-				return nil, err
-			}
-			list.PushBack(value)
-		}
-		if consume {
-			if _, err := canParse.ParseAny(p); err != nil {
-				return nil, err
-			}
-		}
-		return list, nil
-	}
-}
-
-// Continually parses `parseValue` whilst `canParse` can be parsed
-func While[T any](canParse CanParseAny, parse Parse[T], consume ShouldConsumeCondition) ParseFunc[*utils.List[T]] {
-	return func(p *Parser) (*utils.List[T], error) {
-		list := utils.NewList[T]()
-		for canParse.CanParse(p) == nil {
-			if consume {
-				if _, err := canParse.ParseAny(p); err != nil {
-					return nil, err
-				}
-			}
-			value, err := parse.Parse(p)
-			if err != nil {
-				return nil, err
-			}
-			list.PushBack(value)
-		}
-		return list, nil
 	}
 }
 
@@ -145,49 +90,3 @@ func Log(parse Parse[*lexer.Token]) ParseFunc[*lexer.Token] {
 		return token, nil
 	}
 }
-
-// Conditionally parses `parse` when `canParse` can be parsed
-func If(canParse CanParseAny, parse ParseAny, consume ShouldConsumeCondition) ParseFunc[utils.UnitType] {
-	return func(p *Parser) (utils.UnitType, error) {
-		if canParse.CanParse(p) == nil {
-			if consume {
-				if err := canParse.CanParse(p); err != nil {
-					return utils.Unit, err
-				}
-			}
-			_, err := parse.ParseAny(p)
-			return utils.Unit, err
-		}
-		return utils.Unit, nil
-	}
-}
-
-// Parses `parse` into a list until, repeating until `canParse` can no longer be parsed
-func DoWhile[T any](parse Parse[T], canParse CanParseAny, consume ShouldConsumeCondition) ParseFunc[*utils.List[T]] {
-	return func(p *Parser) (*utils.List[T], error) {
-		list := utils.NewList[T]()
-		for {
-			value, err := parse.Parse(p)
-			if err != nil {
-				return nil, err
-			}
-			list.PushBack(value)
-			if canParse.CanParse(p) != nil {
-				break
-			}
-			if consume {
-				if _, err := canParse.ParseAny(p); err != nil {
-					return nil, err
-				}
-			}
-		}
-		return list, nil
-	}
-}
-
-type ShouldConsumeCondition bool
-
-var (
-	ConsumeCondition       ShouldConsumeCondition = true
-	SkipConsumingCondition ShouldConsumeCondition = false
-)
