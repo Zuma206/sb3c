@@ -20,6 +20,7 @@ type CanParse[T any] interface {
 }
 
 type CanParseAny interface {
+	ParseAny
 	CanParse(*Parser) error
 }
 

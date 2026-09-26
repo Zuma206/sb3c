@@ -74,28 +74,35 @@ func Affix[T any](prefix ParseAny, parse Parse[T], suffix ParseAny) ParseFunc[T]
 }
 
 // Continuously parses `T` into a list until `canParse` can be parsed
-func Until[T any](parse Parse[T], canParse CanParseAny) ParseFunc[*utils.List[T]] {
+func Until[T any](parse Parse[T], canParse CanParseAny, consume ShouldConsumeCondition) ParseFunc[*utils.List[T]] {
 	return func(p *Parser) (*utils.List[T], error) {
 		list := utils.NewList[T]()
-		for {
-			if err := canParse.CanParse(p); err == nil {
-				break
-			}
+		for canParse.CanParse(p) != nil {
 			value, err := parse.Parse(p)
 			if err != nil {
 				return nil, err
 			}
 			list.PushBack(value)
 		}
+		if consume {
+			if _, err := canParse.ParseAny(p); err != nil {
+				return nil, err
+			}
+		}
 		return list, nil
 	}
 }
 
 // Continually parses `parseValue` whilst `canParse` can be parsed
-func While[T any](canParse CanParseAny, parse Parse[T]) ParseFunc[*utils.List[T]] {
+func While[T any](canParse CanParseAny, parse Parse[T], consume ShouldConsumeCondition) ParseFunc[*utils.List[T]] {
 	return func(p *Parser) (*utils.List[T], error) {
 		list := utils.NewList[T]()
 		for canParse.CanParse(p) == nil {
+			if consume {
+				if _, err := canParse.ParseAny(p); err != nil {
+					return nil, err
+				}
+			}
 			value, err := parse.Parse(p)
 			if err != nil {
 				return nil, err
@@ -140,9 +147,14 @@ func Log(parse Parse[*lexer.Token]) ParseFunc[*lexer.Token] {
 }
 
 // Conditionally parses `parse` when `canParse` can be parsed
-func If(canParse CanParseAny, parse ParseAny) ParseFunc[utils.UnitType] {
+func If(canParse CanParseAny, parse ParseAny, consume ShouldConsumeCondition) ParseFunc[utils.UnitType] {
 	return func(p *Parser) (utils.UnitType, error) {
 		if canParse.CanParse(p) == nil {
+			if consume {
+				if err := canParse.CanParse(p); err != nil {
+					return utils.Unit, err
+				}
+			}
 			_, err := parse.ParseAny(p)
 			return utils.Unit, err
 		}
@@ -151,7 +163,7 @@ func If(canParse CanParseAny, parse ParseAny) ParseFunc[utils.UnitType] {
 }
 
 // Parses `parse` into a list until, repeating until `canParse` can no longer be parsed
-func DoWhile[T any](parse Parse[T], canParse CanParseAny) ParseFunc[*utils.List[T]] {
+func DoWhile[T any](parse Parse[T], canParse CanParseAny, consume ShouldConsumeCondition) ParseFunc[*utils.List[T]] {
 	return func(p *Parser) (*utils.List[T], error) {
 		list := utils.NewList[T]()
 		for {
@@ -163,7 +175,19 @@ func DoWhile[T any](parse Parse[T], canParse CanParseAny) ParseFunc[*utils.List[
 			if canParse.CanParse(p) != nil {
 				break
 			}
+			if consume {
+				if _, err := canParse.ParseAny(p); err != nil {
+					return nil, err
+				}
+			}
 		}
 		return list, nil
 	}
 }
+
+type ShouldConsumeCondition bool
+
+var (
+	ConsumeCondition       ShouldConsumeCondition = true
+	SkipConsumingCondition ShouldConsumeCondition = false
+)

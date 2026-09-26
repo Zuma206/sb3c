@@ -21,11 +21,11 @@ var member = parser.Value(func(member *Member) parser.ParseAny {
 		parser.All(
 			parser.Store(&member.Decorators,
 				parser.While(parser.Token(Symbol, At),
-					parser.Affix(
-						parser.Token(Symbol, At),
+					parser.Suffix(
 						call,
 						parser.Optional(parser.Type(Whitespace)),
 					),
+					parser.ConsumeCondition,
 				),
 			),
 			parser.Optional(parser.Type(Whitespace)),
@@ -61,11 +61,11 @@ var attribute = parser.Value(func(attribute *Attribute) parser.ParseAny {
 	return parser.All(
 		parser.If(parser.Token(Symbol, Equals),
 			parser.All(
-				parser.Token(Symbol, Equals),
 				parser.Optional(parser.Type(Whitespace)),
 				parser.Store(&attribute.Initializer, expression),
 				parser.Optional(parser.Type(Whitespace)),
 			),
+			parser.ConsumeCondition,
 		),
 		parser.Token(Symbol, Semicolon),
 	)

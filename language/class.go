@@ -36,9 +36,9 @@ var class = parser.Value(func(class *Class) parser.ParseAny {
 						parser.Optional(parser.Type(Whitespace)),
 					),
 					parser.Token(Symbol, CloseBrace),
+					parser.ConsumeCondition,
 				),
 			),
-			parser.Token(Symbol, CloseBrace),
 		),
 	)
 })

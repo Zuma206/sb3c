@@ -38,22 +38,23 @@ var args = parser.Until(
 		parser.Optional(parser.Type(Whitespace)),
 	),
 	parser.Token(Symbol, CloseBracket),
+	parser.SkipConsumingCondition,
 )
 
 var FailedMethodCallsParseErr = errors.New("failed method calls parse")
 
 var methodCalls = parser.Err(FailedMethodCallsParseErr,
 	parser.Until(
-		parser.Prefix(
+		parser.Affix(
 			parser.Optional(parser.Type(Whitespace)),
-			parser.Suffix(call,
-				parser.All(
-					parser.Optional(parser.Type(Whitespace)),
-					parser.Token(Symbol, Semicolon),
-					parser.Optional(parser.Type(Whitespace)),
-				),
+			call,
+			parser.All(
+				parser.Optional(parser.Type(Whitespace)),
+				parser.Token(Symbol, Semicolon),
+				parser.Optional(parser.Type(Whitespace)),
 			),
 		),
 		parser.Token(Symbol, CloseBrace),
+		parser.SkipConsumingCondition,
 	),
 )

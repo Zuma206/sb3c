@@ -28,7 +28,7 @@ var call = parser.Value(func(call *Call) parser.ParseAny {
 				),
 			),
 			parser.Token(Symbol, CloseBracket),
+			parser.ConsumeCondition,
 		)),
-		parser.Token(Symbol, CloseBracket),
 	)
 })
