@@ -68,13 +68,13 @@ func (set *Set) BuildType() (*Type, error) {
 	var expr strings.Builder
 	expr.WriteRune('(')
 	for i, s := range set.strings {
-		if i != 0 {
+		if i > 0 {
 			expr.WriteRune('|')
 		}
 		expr.WriteString(regexp.QuoteMeta(s))
 	}
 	expr.WriteRune(')')
-	regex, err := regexp.Compile(expr.String())
+	regex, err := regexp.Compile("^" + expr.String())
 	if err != nil {
 		return nil, err
 	}

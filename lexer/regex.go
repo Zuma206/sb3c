@@ -17,7 +17,7 @@ func NewRegex(name string, expr string) *Regex {
 }
 
 func (regex *Regex) BuildType() (*Type, error) {
-	compiledRegex, err := regexp.Compile(regex.expr)
+	compiledRegex, err := regexp.Compile("^" + regex.expr)
 	if err != nil {
 		return nil, err
 	}
