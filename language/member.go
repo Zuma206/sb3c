@@ -59,13 +59,13 @@ type Attribute struct {
 
 var attribute = parser.Value(func(attribute *Attribute) parser.ParseAny {
 	return parser.All(
-		parser.If(parser.Token(Symbol, Equals),
+		parser.If(parser.Token(Symbol, Equals), parser.ConsumeCondition,
 			parser.All(
 				parser.Optional(parser.Type(Whitespace)),
 				parser.Store(&attribute.Initializer, expression),
 				parser.Optional(parser.Type(Whitespace)),
 			),
-			parser.ConsumeCondition,
+			parser.All(),
 		),
 		parser.Token(Symbol, Semicolon),
 	)

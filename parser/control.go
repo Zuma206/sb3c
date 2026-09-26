@@ -13,18 +13,18 @@ var (
 )
 
 // Conditionally parses `parse` when `canParse` can be parsed
-func If(canParse CanParseAny, parse ParseAny, consume ShouldConsumeCondition) ParseFunc[utils.UnitType] {
-	return func(p *Parser) (utils.UnitType, error) {
+func If[T any](canParse CanParseAny, consume ShouldConsumeCondition, parseIf Parse[T], parseElse Parse[T]) ParseFunc[T] {
+	var zeroValue T
+	return func(p *Parser) (T, error) {
 		if canParse.CanParse(p) == nil {
 			if consume {
 				if err := canParse.CanParse(p); err != nil {
-					return utils.Unit, err
+					return zeroValue, err
 				}
 			}
-			_, err := parse.ParseAny(p)
-			return utils.Unit, err
+			return parseIf.Parse(p)
 		}
-		return utils.Unit, nil
+		return parseElse.Parse(p)
 	}
 }
 
