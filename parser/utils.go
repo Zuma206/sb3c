@@ -149,3 +149,21 @@ func If(canParse CanParseAny, parse ParseAny) ParseFunc[utils.UnitType] {
 		return utils.Unit, nil
 	}
 }
+
+// Parses `parse` into a list until, repeating until `canParse` can no longer be parsed
+func DoWhile[T any](parse Parse[T], canParse CanParseAny) ParseFunc[*utils.List[T]] {
+	return func(p *Parser) (*utils.List[T], error) {
+		list := utils.NewList[T]()
+		for {
+			value, err := parse.Parse(p)
+			if err != nil {
+				return nil, err
+			}
+			list.PushBack(value)
+			if canParse.CanParse(p) != nil {
+				break
+			}
+		}
+		return list, nil
+	}
+}
