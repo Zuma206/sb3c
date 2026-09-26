@@ -2,39 +2,33 @@ package parser
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/zuma206/sb3c/utils"
 )
 
-type switchCase struct {
-	canParse CheckableStepAny
-	parse    StepAny
+type switchCase[T any, U any] struct {
+	check CheckableStepAny[U]
+	step  Step[T, U]
 }
 
-func Case(check CheckableStepAny, step StepAny) *switchCase {
-	return &switchCase{
-		canParse: check,
-		parse:    step,
+func Case[T any, U any](check CheckableStepAny[U], step Step[T, U]) *switchCase[T, U] {
+	return &switchCase[T, U]{
+		check: check,
+		step:  step,
 	}
 }
 
 var NoCaseHitErr = errors.New("no case hit")
 
-func Switch(cases ...*switchCase) StepFunc[utils.UnitType] {
-	return func(p *Parser) (utils.UnitType, error) {
+func Switch[T any, U any](cases ...*switchCase[T, U]) StepFunc[T, U] {
+	return func(p *Parser[U]) (T, error) {
 		for _, switchCase := range cases {
-			if switchCase.canParse.CanParse(p) != nil {
+			if switchCase.check.CanParse(p) != nil {
 				continue
 			}
-			_, err := switchCase.parse.ParseAny(p)
-			return utils.Unit, err
+			_, err := switchCase.check.ParseAny(p)
+			return utils.Zero[T](), err
 		}
-		token, err := p.Peek(0)
-		if err != nil {
-			return utils.Unit, err
-		}
-		err = fmt.Errorf("at token %s(%q, %w)", token.Type.Name, token.Src, &token.Pos)
-		return utils.Unit, errors.Join(NoCaseHitErr, err)
+		return utils.Zero[T](), NoCaseHitErr
 	}
 }

@@ -9,13 +9,16 @@ var (
 	SkipConsumingCondition ShouldConsumeCondition = false
 )
 
-func If[T any](ifCheck CheckableStepAny, consume ShouldConsumeCondition, stepIf Step[T], stepElse Step[T]) StepFunc[T] {
-	var zeroValue T
-	return func(p *Parser) (T, error) {
+func If[T any, U any](
+	ifCheck CheckableStepAny[U],
+	consume ShouldConsumeCondition,
+	stepIf Step[T, U], stepElse Step[T, U],
+) StepFunc[T, U] {
+	return func(p *Parser[U]) (T, error) {
 		if ifCheck.CanParse(p) == nil {
 			if consume {
 				if err := ifCheck.CanParse(p); err != nil {
-					return zeroValue, err
+					return utils.Zero[T](), err
 				}
 			}
 			return stepIf.Parse(p)
@@ -24,8 +27,12 @@ func If[T any](ifCheck CheckableStepAny, consume ShouldConsumeCondition, stepIf 
 	}
 }
 
-func DoWhile[T any](doStep Step[T], whileCheck CheckableStepAny, consume ShouldConsumeCondition) StepFunc[*utils.List[T]] {
-	return func(p *Parser) (*utils.List[T], error) {
+func DoWhile[T any, U any](
+	doStep Step[T, U],
+	whileCheck CheckableStepAny[U],
+	consume ShouldConsumeCondition,
+) StepFunc[*utils.List[T], U] {
+	return func(p *Parser[U]) (*utils.List[T], error) {
 		list := utils.NewList[T]()
 		for {
 			value, err := doStep.Parse(p)
@@ -46,8 +53,12 @@ func DoWhile[T any](doStep Step[T], whileCheck CheckableStepAny, consume ShouldC
 	}
 }
 
-func Until[T any](step Step[T], untilCheck CheckableStepAny, consume ShouldConsumeCondition) StepFunc[*utils.List[T]] {
-	return func(p *Parser) (*utils.List[T], error) {
+func Until[T any, U any](
+	step Step[T, U],
+	untilCheck CheckableStepAny[U],
+	consume ShouldConsumeCondition,
+) StepFunc[*utils.List[T], U] {
+	return func(p *Parser[U]) (*utils.List[T], error) {
 		list := utils.NewList[T]()
 		for untilCheck.CanParse(p) != nil {
 			value, err := step.Parse(p)
@@ -65,8 +76,12 @@ func Until[T any](step Step[T], untilCheck CheckableStepAny, consume ShouldConsu
 	}
 }
 
-func While[T any](whileCheck CheckableStepAny, step Step[T], consume ShouldConsumeCondition) StepFunc[*utils.List[T]] {
-	return func(p *Parser) (*utils.List[T], error) {
+func While[T any, U any](
+	whileCheck CheckableStepAny[U],
+	step Step[T, U],
+	consume ShouldConsumeCondition,
+) StepFunc[*utils.List[T], U] {
+	return func(p *Parser[U]) (*utils.List[T], error) {
 		list := utils.NewList[T]()
 		for whileCheck.CanParse(p) == nil {
 			if consume {
@@ -84,9 +99,8 @@ func While[T any](whileCheck CheckableStepAny, step Step[T], consume ShouldConsu
 	}
 }
 
-// Continually parses until the parser is finished
-func UntilFinished[T any](step Step[T]) StepFunc[*utils.List[T]] {
-	return func(p *Parser) (*utils.List[T], error) {
+func UntilFinished[T any, U any](step Step[T, U]) StepFunc[*utils.List[T], U] {
+	return func(p *Parser[U]) (*utils.List[T], error) {
 		list := utils.NewList[T]()
 		for !p.Finished() {
 			value, err := step.Parse(p)

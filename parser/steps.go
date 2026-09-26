@@ -1,30 +1,30 @@
 package parser
 
-type Step[T any] interface {
-	Parse(*Parser) (T, error)
-	StepAny
+type Step[T any, U any] interface {
+	Parse(*Parser[U]) (T, error)
+	StepAny[U]
 }
 
-type StepAny interface {
-	ParseAny(*Parser) (any, error)
+type StepAny[U any] interface {
+	ParseAny(*Parser[U]) (any, error)
 }
 
-type CheckableStep[T any] interface {
-	Step[T]
-	CheckableStepAny
+type CheckableStep[T any, U any] interface {
+	Step[T, U]
+	CheckableStepAny[U]
 }
 
-type CheckableStepAny interface {
-	StepAny
-	CanParse(*Parser) error
+type CheckableStepAny[U any] interface {
+	StepAny[U]
+	CanParse(*Parser[U]) error
 }
 
-type StepFunc[T any] func(*Parser) (T, error)
+type StepFunc[T any, U any] func(*Parser[U]) (T, error)
 
-func (parseFunc StepFunc[T]) Parse(p *Parser) (T, error) {
+func (parseFunc StepFunc[T, U]) Parse(p *Parser[U]) (T, error) {
 	return parseFunc(p)
 }
 
-func (parseFunc StepFunc[T]) ParseAny(p *Parser) (any, error) {
+func (parseFunc StepFunc[T, U]) ParseAny(p *Parser[U]) (any, error) {
 	return parseFunc.Parse(p)
 }
