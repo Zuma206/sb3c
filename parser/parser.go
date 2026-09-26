@@ -4,16 +4,16 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/zuma206/sb3c/lexer"
+	"github.com/zuma206/sb3c/utils"
 )
 
-type Parser struct {
-	tokens []*lexer.Token
+type Parser[U any] struct {
+	tokens []U
 	index  int
 }
 
-func NewParser(tokens []*lexer.Token) *Parser {
-	return &Parser{
+func NewParser[U any](tokens []U) *Parser[U] {
+	return &Parser[U]{
 		tokens: tokens,
 		index:  0,
 	}
@@ -24,26 +24,22 @@ var (
 	EOFError            = errors.New("eof")
 )
 
-func (parser *Parser) Peek(offset int) (*lexer.Token, error) {
-	if offset < 0 {
-		return nil, fmt.Errorf("%w: %d is less than zero", NegativeOffsetError, offset)
-	}
-	index := parser.index + offset
-	if index >= len(parser.tokens) {
-		return nil, fmt.Errorf("%w: index %d is out of bounds", EOFError, index)
+func (parser *Parser[U]) Peek() (U, error) {
+	if parser.index >= len(parser.tokens) {
+		return utils.Zero[U](), fmt.Errorf("%w: no token left to peek", EOFError)
 	}
 	return parser.tokens[parser.index], nil
 }
 
-func (parser *Parser) Consume() (*lexer.Token, error) {
-	token, err := parser.Peek(0)
+func (parser *Parser[U]) Consume() (U, error) {
+	token, err := parser.Peek()
 	if err != nil {
-		return nil, err
+		return utils.Zero[U](), err
 	}
 	parser.index++
 	return token, nil
 }
 
-func (parser *Parser) Finished() bool {
+func (parser *Parser[U]) Finished() bool {
 	return parser.index >= len(parser.tokens)
 }
