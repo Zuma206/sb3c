@@ -23,7 +23,13 @@ var call = parser.Err(FailedCallParseErr,
 			),
 			parser.Optional(parser.Type(Whitespace)),
 			parser.Token(Symbol, OpenBracket),
-			parser.Store(&call.Args, callArgs),
+			parser.Store(&call.Args,
+				parser.If(parser.Token(Symbol, CloseBracket), parser.SkipConsumingCondition,
+					parser.None[*Expression](),
+					callArgs,
+				),
+			),
+			parser.Token(Symbol, CloseBracket),
 		)
 	}),
 )
@@ -31,16 +37,13 @@ var call = parser.Err(FailedCallParseErr,
 var FailedCallArgsParseErr = errors.New("failed call args parse")
 
 var callArgs = parser.Err(FailedCallArgsParseErr,
-	parser.Until(
+	parser.DoWhile(
 		parser.Affix(
 			parser.Optional(parser.Type(Whitespace)),
 			expression,
-			parser.All(
-				parser.Optional(parser.Type(Whitespace)),
-				parser.Token(Symbol, Comma),
-			),
+			parser.Optional(parser.Type(Whitespace)),
 		),
-		parser.Token(Symbol, CloseBracket),
+		parser.Token(Symbol, Comma),
 		parser.ConsumeCondition,
 	),
 )
