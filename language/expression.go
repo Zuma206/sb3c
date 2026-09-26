@@ -9,8 +9,8 @@ type Expression struct {
 	Token *lexer.Token
 }
 
-var expression = parser.Value(func(expression *Expression) parser.ParseAny {
-	return parser.Store(
+var expression = parser.Returns(func(expression *Expression) parser.StepAny {
+	return parser.Set(
 		&expression.Token,
 		parser.OneOf(parser.Type(NumberLiteral), parser.Type(StringLiteral)),
 	)

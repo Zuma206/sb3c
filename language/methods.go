@@ -16,14 +16,14 @@ type Method struct {
 var FailedMethodParseErr = errors.New("failed method parse")
 
 var method = parser.Err(FailedMethodParseErr,
-	parser.Value(func(method *Method) parser.ParseAny {
-		return parser.All(
+	parser.Returns(func(method *Method) parser.StepAny {
+		return parser.Sequence(
 			parser.Token(Symbol, OpenBracket),
 			parser.Optional(parser.Type(Whitespace)),
 			parser.Token(Symbol, CloseBracket),
 			parser.Optional(parser.Type(Whitespace)),
 			parser.Token(Symbol, OpenBrace),
-			parser.Store(&method.Calls, methodCalls),
+			parser.Set(&method.Calls, methodCalls),
 			parser.Token(Symbol, CloseBrace),
 		)
 	}),
@@ -36,7 +36,7 @@ var methodCalls = parser.Err(FailedMethodCallsParseErr,
 		parser.Affix(
 			parser.Optional(parser.Type(Whitespace)),
 			call,
-			parser.All(
+			parser.Sequence(
 				parser.Optional(parser.Type(Whitespace)),
 				parser.Token(Symbol, Semicolon),
 				parser.Optional(parser.Type(Whitespace)),

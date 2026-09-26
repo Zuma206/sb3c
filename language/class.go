@@ -16,19 +16,19 @@ type Class struct {
 
 var FailedClassParseErr = errors.New("failed class parse")
 
-var class = parser.Value(func(class *Class) parser.ParseAny {
+var class = parser.Returns(func(class *Class) parser.StepAny {
 	return parser.Err(FailedClassParseErr,
-		parser.All(
+		parser.Sequence(
 			parser.Token(Keyword, ClassKeyword),
 			parser.Type(Whitespace),
-			parser.Store(&class.Name, parser.Type(Identifier)),
+			parser.Set(&class.Name, parser.Type(Identifier)),
 			parser.Type(Whitespace),
 			parser.Token(Keyword, Extends),
 			parser.Type(Whitespace),
-			parser.Store(&class.Super, parser.Type(Identifier)),
+			parser.Set(&class.Super, parser.Type(Identifier)),
 			parser.Optional(parser.Type(Whitespace)),
 			parser.Token(Symbol, OpenBrace),
-			parser.Store(&class.Members,
+			parser.Set(&class.Members,
 				parser.Until(
 					parser.Affix(
 						parser.Optional(parser.Type(Whitespace)),

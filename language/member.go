@@ -16,10 +16,10 @@ type Member struct {
 
 var FailedMemberParseErr = errors.New("failed member parse")
 
-var member = parser.Value(func(member *Member) parser.ParseAny {
+var member = parser.Returns(func(member *Member) parser.StepAny {
 	return parser.Err(FailedMemberParseErr,
-		parser.All(
-			parser.Store(&member.Decorators,
+		parser.Sequence(
+			parser.Set(&member.Decorators,
 				parser.While(parser.Token(Symbol, At),
 					parser.Suffix(
 						call,
@@ -29,9 +29,9 @@ var member = parser.Value(func(member *Member) parser.ParseAny {
 				),
 			),
 			parser.Optional(parser.Type(Whitespace)),
-			parser.Store(&member.Name, parser.Type(Identifier)),
+			parser.Set(&member.Name, parser.Type(Identifier)),
 			parser.Optional(parser.Type(Whitespace)),
-			parser.Store(&member.AttributeOrMethod, attributeOrMethod),
+			parser.Set(&member.AttributeOrMethod, attributeOrMethod),
 		),
 	)
 })
@@ -43,13 +43,13 @@ type AttributeOrMethod struct {
 
 var FailedAttributeOrMethodParseErr = errors.New("failed attribute or method parse")
 
-var attributeOrMethod = parser.Value(func(attributeOrMethod *AttributeOrMethod) parser.ParseAny {
+var attributeOrMethod = parser.Returns(func(attributeOrMethod *AttributeOrMethod) parser.StepAny {
 	return parser.Err(FailedAttributeOrMethodParseErr,
 		parser.Switch(
 			parser.Case(parser.Token(Symbol, OpenBracket),
-				parser.Store(&attributeOrMethod.Method, method)),
+				parser.Set(&attributeOrMethod.Method, method)),
 			parser.Case(parser.OneOf(parser.Token(Symbol, Equals), parser.Token(Symbol, Semicolon)),
-				parser.Store(&attributeOrMethod.Attribute, attribute))),
+				parser.Set(&attributeOrMethod.Attribute, attribute))),
 	)
 })
 
@@ -57,15 +57,15 @@ type Attribute struct {
 	Initializer *Expression
 }
 
-var attribute = parser.Value(func(attribute *Attribute) parser.ParseAny {
-	return parser.All(
+var attribute = parser.Returns(func(attribute *Attribute) parser.StepAny {
+	return parser.Sequence(
 		parser.If(parser.Token(Symbol, Equals), parser.ConsumeCondition,
-			parser.All(
+			parser.Sequence(
 				parser.Optional(parser.Type(Whitespace)),
-				parser.Store(&attribute.Initializer, expression),
+				parser.Set(&attribute.Initializer, expression),
 				parser.Optional(parser.Type(Whitespace)),
 			),
-			parser.All(),
+			parser.Sequence(),
 		),
 		parser.Token(Symbol, Semicolon),
 	)

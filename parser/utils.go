@@ -8,10 +8,9 @@ import (
 	"github.com/zuma206/sb3c/visualisation"
 )
 
-// Stores the value of a `Parse` step into a pointer
-func Store[T any](result *T, parse Parse[T]) ParseFunc[T] {
+func Set[T any](result *T, step Step[T]) StepFunc[T] {
 	return func(p *Parser) (T, error) {
-		value, err := parse.Parse(p)
+		value, err := step.Parse(p)
 		if err != nil {
 			return value, err
 		}
@@ -20,10 +19,9 @@ func Store[T any](result *T, parse Parse[T]) ParseFunc[T] {
 	}
 }
 
-// Parses all steps in sequence
-func All(all ...ParseAny) ParseFunc[utils.UnitType] {
+func Sequence(steps ...StepAny) StepFunc[utils.UnitType] {
 	return func(p *Parser) (utils.UnitType, error) {
-		for _, parse := range all {
+		for _, parse := range steps {
 			if _, err := parse.ParseAny(p); err != nil {
 				return utils.Unit, err
 			}
@@ -32,8 +30,7 @@ func All(all ...ParseAny) ParseFunc[utils.UnitType] {
 	}
 }
 
-// Creates a value inline whilst parsing
-func Value[T any](f func(value *T) ParseAny) ParseFunc[*T] {
+func Returns[T any](f func(value *T) StepAny) StepFunc[*T] {
 	return func(p *Parser) (*T, error) {
 		var value T
 		_, err := f(&value).ParseAny(p)
@@ -41,13 +38,12 @@ func Value[T any](f func(value *T) ParseAny) ParseFunc[*T] {
 	}
 }
 
-// Adds a prefix and suffix to a `ParseValue` whilst preserving the value
-func Affix[T any](prefix ParseAny, parse Parse[T], suffix ParseAny) ParseFunc[T] {
+func Affix[T any](prefix StepAny, step Step[T], suffix StepAny) StepFunc[T] {
 	return func(p *Parser) (value T, err error) {
 		if _, err = prefix.ParseAny(p); err != nil {
 			return value, err
 		}
-		value, err = parse.Parse(p)
+		value, err = step.Parse(p)
 		if err != nil {
 			return value, err
 		}
@@ -58,20 +54,17 @@ func Affix[T any](prefix ParseAny, parse Parse[T], suffix ParseAny) ParseFunc[T]
 	}
 }
 
-// See `Affix`
-func Suffix[T any](parse Parse[T], suffix ParseAny) ParseFunc[T] {
-	return Affix(All(), parse, suffix)
+func Suffix[T any](parse Step[T], suffix StepAny) StepFunc[T] {
+	return Affix(Sequence(), parse, suffix)
 }
 
-// See `Affix`
-func Prefix[T any](prefix ParseAny, parse Parse[T]) ParseFunc[T] {
-	return Affix(prefix, parse, All())
+func Prefix[T any](prefix StepAny, parse Step[T]) StepFunc[T] {
+	return Affix(prefix, parse, Sequence())
 }
 
-// Joins any parse errors with a given parent error
-func Err[T any](parentErr error, parse Parse[T]) ParseFunc[T] {
+func Err[T any](parentErr error, step Step[T]) StepFunc[T] {
 	return func(p *Parser) (T, error) {
-		value, err := parse.Parse(p)
+		value, err := step.Parse(p)
 		if err != nil {
 			return value, errors.Join(parentErr, err)
 		}
@@ -79,10 +72,9 @@ func Err[T any](parentErr error, parse Parse[T]) ParseFunc[T] {
 	}
 }
 
-// Logs a token as it's parsed
-func Log(parse Parse[*lexer.Token]) ParseFunc[*lexer.Token] {
+func Log(step Step[*lexer.Token]) StepFunc[*lexer.Token] {
 	return func(p *Parser) (*lexer.Token, error) {
-		token, err := parse.Parse(p)
+		token, err := step.Parse(p)
 		if err != nil {
 			return nil, err
 		}
@@ -91,9 +83,18 @@ func Log(parse Parse[*lexer.Token]) ParseFunc[*lexer.Token] {
 	}
 }
 
-// Parses none of type T
-func None[T any]() ParseFunc[*utils.List[T]] {
+func None[T any]() StepFunc[*utils.List[T]] {
 	return func(_ *Parser) (*utils.List[T], error) {
 		return utils.NewList[T](), nil
+	}
+}
+
+func Optional[T any](step CheckableStep[T]) StepFunc[utils.UnitType] {
+	return func(p *Parser) (utils.UnitType, error) {
+		if step.CanParse(p) == nil {
+			_, err := step.Parse(p)
+			return utils.Unit, err
+		}
+		return utils.Unit, nil
 	}
 }

@@ -7,13 +7,11 @@ import (
 	"github.com/zuma206/sb3c/lexer"
 )
 
-// Generic parser that parses through a slice of lex tokens
 type Parser struct {
 	tokens []*lexer.Token
 	index  int
 }
 
-// Constructs a parser
 func NewParser(tokens []*lexer.Token) *Parser {
 	return &Parser{
 		tokens: tokens,
@@ -22,13 +20,10 @@ func NewParser(tokens []*lexer.Token) *Parser {
 }
 
 var (
-	// Occurs when a negative offset is passed into Peek
 	NegativeOffsetError = errors.New("negative offset")
-	// Occurs when a Peek is called that peeks past the end of the token list
-	EOFError = errors.New("eof")
+	EOFError            = errors.New("eof")
 )
 
-// Returns the token at the given offset from the parse index
 func (parser *Parser) Peek(offset int) (*lexer.Token, error) {
 	if offset < 0 {
 		return nil, fmt.Errorf("%w: %d is less than zero", NegativeOffsetError, offset)
@@ -40,7 +35,6 @@ func (parser *Parser) Peek(offset int) (*lexer.Token, error) {
 	return parser.tokens[parser.index], nil
 }
 
-// Consumes a token from the token list, incrementing the parse index past it
 func (parser *Parser) Consume() (*lexer.Token, error) {
 	token, err := parser.Peek(0)
 	if err != nil {
@@ -50,7 +44,6 @@ func (parser *Parser) Consume() (*lexer.Token, error) {
 	return token, nil
 }
 
-// Indicates if a parser has reached the end of the token list
 func (parser *Parser) Finished() bool {
 	return parser.index >= len(parser.tokens)
 }

@@ -7,7 +7,6 @@ import (
 	"github.com/zuma206/sb3c/lexer"
 )
 
-// Parses a single token by type, source, or both
 type parseToken struct {
 	tokenType *lexer.Type
 	src       *string
@@ -46,7 +45,6 @@ func (parseToken *parseToken) getErr(token *lexer.Token) error {
 		expectedType, expectedSrc, token.Type.Name, token.Src, &token.Pos)
 }
 
-// Checks if the token can be parsed from the current parser state
 func (parseToken *parseToken) CanParse(p *Parser) error {
 	token, err := p.Peek(0)
 	if err != nil {
@@ -61,7 +59,6 @@ func (parseToken *parseToken) CanParse(p *Parser) error {
 	return nil
 }
 
-// Parses a single token described by `ParseToken`, returning it
 func (parseToken *parseToken) Parse(p *Parser) (*lexer.Token, error) {
 	if err := parseToken.CanParse(p); err != nil {
 		return nil, err
@@ -69,7 +66,6 @@ func (parseToken *parseToken) Parse(p *Parser) (*lexer.Token, error) {
 	return p.Consume()
 }
 
-// Parses a single token described by `ParseToken` and then discards it
 func (parseToken *parseToken) ParseAny(p *Parser) (any, error) {
 	return parseToken.Parse(p)
 }

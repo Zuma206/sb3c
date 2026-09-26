@@ -9,8 +9,8 @@ type Program struct {
 	Classes *utils.List[*Class]
 }
 
-var ParseProgram = parser.Value(func(program *Program) parser.ParseAny {
-	return parser.Store(&program.Classes,
+var ParseProgram = parser.Returns(func(program *Program) parser.StepAny {
+	return parser.Set(&program.Classes,
 		parser.UntilFinished(
 			parser.Affix(
 				parser.Optional(parser.Type(Whitespace)),

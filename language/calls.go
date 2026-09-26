@@ -16,14 +16,14 @@ type Call struct {
 var FailedCallParseErr = errors.New("failed call parse")
 
 var call = parser.Err(FailedCallParseErr,
-	parser.Value(func(call *Call) parser.ParseAny {
-		return parser.All(
-			parser.Store(&call.Path,
+	parser.Returns(func(call *Call) parser.StepAny {
+		return parser.Sequence(
+			parser.Set(&call.Path,
 				parser.OneOf(parser.Type(Identifier), parser.Type(Path)),
 			),
 			parser.Optional(parser.Type(Whitespace)),
 			parser.Token(Symbol, OpenBracket),
-			parser.Store(&call.Args,
+			parser.Set(&call.Args,
 				parser.If(parser.Token(Symbol, CloseBracket), parser.SkipConsumingCondition,
 					parser.None[*Expression](),
 					callArgs,
