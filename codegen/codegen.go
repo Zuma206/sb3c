@@ -33,11 +33,9 @@ var InvalidSuperError = errors.New("invalid super")
 func newTarget(sb3Project *sb3.SB3, class *language.Class) (*sb3.TargetHnd, error) {
 	switch class.Super.Src {
 	case StageClass:
-		stage, err := sb3Project.NewStage()
-		if err != nil {
-			return stage, fmt.Errorf("%w %w", err, &class.Name.Pos)
-		}
-		return stage, err
+		return sb3Project.NewStage(), nil
+	case SpriteClass:
+		return sb3Project.NewSprite(class.Name.Src), nil
 	default:
 		err := fmt.Errorf("%q has an invalid super class %q %w", class.Name.Src, class.Super.Src, &class.Super.Pos)
 		return nil, errors.Join(InvalidSuperError, err)
