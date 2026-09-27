@@ -3,7 +3,6 @@ package visualisation
 import (
 	"fmt"
 	"io"
-	"iter"
 	"os"
 	"reflect"
 )
@@ -81,21 +80,6 @@ func (visualiser *Visualiser) visualiseWithReflection(value any) bool {
 	return true
 }
 
-type IterAny interface {
-	IterAny() iter.Seq[any]
-}
-
-func (visualiser *Visualiser) visualiseIterAny(iterAny IterAny) {
-	fmt.Fprint(visualiser.file, reflect.TypeOf(iterAny).Elem().Name(), " {\n")
-	visualiser.indent(func() {
-		for i := range iterAny.IterAny() {
-			visualiser.print()
-			visualiser.visualise(i)
-		}
-	})
-	visualiser.print("}\n")
-}
-
 type Visualisable interface {
 	Visualise(io.Writer)
 }
@@ -114,8 +98,6 @@ func (visualiser *Visualiser) visualiseSpecialCase(value any) bool {
 		fmt.Fprintln(visualiser.file, value)
 	} else if visualisable, ok := value.(Visualisable); ok {
 		visualisable.Visualise(visualiser.file)
-	} else if iterAny, ok := value.(IterAny); ok {
-		visualiser.visualiseIterAny(iterAny)
 	} else {
 		return false
 	}
