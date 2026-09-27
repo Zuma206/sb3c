@@ -5,12 +5,11 @@ import (
 
 	"github.com/zuma206/sb3c/lexer"
 	. "github.com/zuma206/sb3c/parser"
-	"github.com/zuma206/sb3c/utils"
 )
 
 type Call struct {
 	Path *lexer.Token
-	Args *utils.List[*Expression]
+	Args []*Expression
 }
 
 var FailedCallParseErr = errors.New("failed call parse")

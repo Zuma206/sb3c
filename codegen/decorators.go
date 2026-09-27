@@ -19,14 +19,14 @@ func generateAttributeDecorators(method *language.Member, target *sb3.TargetHnd)
 var InvalidDecoratorErr = errors.New("invalid decorator")
 
 func generateDecorators[Handle any](member *language.Member, hnd Handle, mappings DecoratorMappings[Handle]) error {
-	for decorator := range member.Decorators.Iter() {
+	for _, decorator := range member.Decorators {
 		mapping, ok := mappings[decorator.Path.Src]
 		if !ok {
 			err := fmt.Errorf("%q %w", decorator.Path.Src, &decorator.Path.Pos)
 			return errors.Join(InvalidDecoratorErr, err)
 		}
 		args := []any{}
-		for arg := range decorator.Args.Iter() {
+		for _, arg := range decorator.Args {
 			value, err := expressionToConst(arg)
 			if err != nil {
 				return err

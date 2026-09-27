@@ -31,15 +31,15 @@ func DoWhile[T any, U any](
 	doStep Step[T, U],
 	whileCheck CheckableStepAny[U],
 	consume ShouldConsumeCondition,
-) StepFunc[*utils.List[T], U] {
-	return func(p *Parser[U]) (*utils.List[T], error) {
-		list := utils.NewList[T]()
+) StepFunc[[]T, U] {
+	return func(p *Parser[U]) ([]T, error) {
+		ts := []T{}
 		for {
 			value, err := doStep.Parse(p)
 			if err != nil {
 				return nil, err
 			}
-			list.PushBack(value)
+			ts = append(ts, value)
 			if whileCheck.CanParse(p) != nil {
 				break
 			}
@@ -49,7 +49,7 @@ func DoWhile[T any, U any](
 				}
 			}
 		}
-		return list, nil
+		return ts, nil
 	}
 }
 
@@ -57,22 +57,22 @@ func Until[T any, U any](
 	step Step[T, U],
 	untilCheck CheckableStepAny[U],
 	consume ShouldConsumeCondition,
-) StepFunc[*utils.List[T], U] {
-	return func(p *Parser[U]) (*utils.List[T], error) {
-		list := utils.NewList[T]()
+) StepFunc[[]T, U] {
+	return func(p *Parser[U]) ([]T, error) {
+		ts := []T{}
 		for untilCheck.CanParse(p) != nil {
 			value, err := step.Parse(p)
 			if err != nil {
 				return nil, err
 			}
-			list.PushBack(value)
+			ts = append(ts, value)
 		}
 		if consume {
 			if _, err := untilCheck.ParseAny(p); err != nil {
 				return nil, err
 			}
 		}
-		return list, nil
+		return ts, nil
 	}
 }
 
@@ -80,9 +80,9 @@ func While[T any, U any](
 	whileCheck CheckableStepAny[U],
 	step Step[T, U],
 	consume ShouldConsumeCondition,
-) StepFunc[*utils.List[T], U] {
-	return func(p *Parser[U]) (*utils.List[T], error) {
-		list := utils.NewList[T]()
+) StepFunc[[]T, U] {
+	return func(p *Parser[U]) ([]T, error) {
+		ts := []T{}
 		for whileCheck.CanParse(p) == nil {
 			if consume {
 				if _, err := whileCheck.ParseAny(p); err != nil {
@@ -93,22 +93,22 @@ func While[T any, U any](
 			if err != nil {
 				return nil, err
 			}
-			list.PushBack(value)
+			ts = append(ts, value)
 		}
-		return list, nil
+		return ts, nil
 	}
 }
 
-func UntilFinished[T any, U any](step Step[T, U]) StepFunc[*utils.List[T], U] {
-	return func(p *Parser[U]) (*utils.List[T], error) {
-		list := utils.NewList[T]()
+func UntilFinished[T any, U any](step Step[T, U]) StepFunc[[]T, U] {
+	return func(p *Parser[U]) ([]T, error) {
+		ts := []T{}
 		for !p.Finished() {
 			value, err := step.Parse(p)
 			if err != nil {
 				return nil, err
 			}
-			list.PushBack(value)
+			ts = append(ts, value)
 		}
-		return list, nil
+		return ts, nil
 	}
 }

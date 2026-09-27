@@ -11,7 +11,7 @@ import (
 
 func Generate(program *language.Program, fileSystem fs.FS) (*sb3.SB3, error) {
 	sb3Project := sb3.NewSB3(fileSystem)
-	for class := range program.Classes.Iter() {
+	for _, class := range program.Classes {
 		target, err := newTarget(sb3Project, class)
 		if err != nil {
 			return nil, err
@@ -45,7 +45,7 @@ func newTarget(sb3Project *sb3.SB3, class *language.Class) (*sb3.TargetHnd, erro
 }
 
 func generateMembers(target *sb3.TargetHnd, class *language.Class) error {
-	for member := range class.Members.Iter() {
+	for _, member := range class.Members {
 		if err := generateMember(target, member); err != nil {
 			return err
 		}

@@ -5,12 +5,11 @@ import (
 
 	"github.com/zuma206/sb3c/lexer"
 	. "github.com/zuma206/sb3c/parser"
-	"github.com/zuma206/sb3c/utils"
 )
 
 type Method struct {
-	Args  *utils.List[*lexer.Token]
-	Calls *utils.List[*Call]
+	Args  []*lexer.Token
+	Calls []*Call
 }
 
 var FailedMethodParseErr = errors.New("failed method parse")

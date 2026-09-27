@@ -73,9 +73,9 @@ func Err[T any, U any](parentErr error, step Step[T, U]) StepFunc[T, U] {
 	}
 }
 
-func None[T any, U any]() StepFunc[*utils.List[T], U] {
-	return func(_ *Parser[U]) (*utils.List[T], error) {
-		return utils.NewList[T](), nil
+func None[T any, U any]() StepFunc[[]T, U] {
+	return func(_ *Parser[U]) ([]T, error) {
+		return []T{}, nil
 	}
 }
 
