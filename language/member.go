@@ -5,11 +5,10 @@ import (
 
 	"github.com/zuma206/sb3c/lexer"
 	. "github.com/zuma206/sb3c/parser"
-	"github.com/zuma206/sb3c/utils"
 )
 
 type Member struct {
-	Decorators        *utils.List[*Call]
+	Decorators        []*Call
 	Name              *lexer.Token
 	AttributeOrMethod *AttributeOrMethod
 }

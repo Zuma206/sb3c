@@ -5,13 +5,12 @@ import (
 
 	"github.com/zuma206/sb3c/lexer"
 	. "github.com/zuma206/sb3c/parser"
-	"github.com/zuma206/sb3c/utils"
 )
 
 type Class struct {
 	Name    *lexer.Token
 	Super   *lexer.Token
-	Members *utils.List[*Member]
+	Members []*Member
 }
 
 var FailedClassParseErr = errors.New("failed class parse")

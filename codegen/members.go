@@ -4,10 +4,10 @@ import (
 	"errors"
 	"fmt"
 	"iter"
+	"slices"
 
 	"github.com/zuma206/sb3c/language"
 	"github.com/zuma206/sb3c/sb3"
-	"github.com/zuma206/sb3c/utils"
 )
 
 func generateMember(target *sb3.TargetHnd, member *language.Member) error {
@@ -28,7 +28,7 @@ func generateProcedure(target *sb3.TargetHnd, method *language.Member) error {
 	if err := generateProcedureDecorators(method, procedure); err != nil {
 		return err
 	}
-	for call := range method.AttributeOrMethod.Method.Calls.Iter() {
+	for _, call := range method.AttributeOrMethod.Method.Calls {
 		block, err := generateBlock(call)
 		if err != nil {
 			return err
@@ -53,9 +53,9 @@ func generateBlock(call *language.Call) (*sb3.Block, error) {
 
 var NotEnoughArgumentsErr = errors.New("not enough arguments")
 
-func generateInputs(args *utils.List[*language.Expression], keys []string) (map[string]*sb3.Input, error) {
+func generateInputs(args []*language.Expression, keys []string) (map[string]*sb3.Input, error) {
 	inputs := make(map[string]*sb3.Input, len(keys))
-	next, stop := iter.Pull(args.Iter())
+	next, stop := iter.Pull(slices.Values(args))
 	defer stop()
 	for i, key := range keys {
 		arg, ok := next()
