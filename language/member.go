@@ -14,15 +14,15 @@ type Member struct {
 	AttributeOrMethod *AttributeOrMethod
 }
 
-var FailedMemberParseErr = errors.New("failed member parse")
+var (
+	FailedMemberParseErr = errors.New("failed member parse")
+)
 
 var member = Returns(func(member *Member) StepAny[*lexer.Token] {
 	return Err(FailedMemberParseErr,
 		Sequence(
 			Set(&member.Decorators,
-				While(At,
-					Suffix(call, Optional(Whitespace)),
-					ConsumeCondition),
+				decorators,
 			),
 			Optional(Whitespace),
 			Set(&member.Name, Identifier),
@@ -31,6 +31,12 @@ var member = Returns(func(member *Member) StepAny[*lexer.Token] {
 		),
 	)
 })
+
+var FailedDecoratorsParseErr = errors.New("failed decorators parse")
+
+var decorators = While(At,
+	Suffix(call, Optional(Whitespace)),
+	ConsumeCondition)
 
 type AttributeOrMethod struct {
 	Attribute *Attribute
