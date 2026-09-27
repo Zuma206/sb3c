@@ -1,6 +1,9 @@
 package lexer
 
-import "fmt"
+import (
+	"fmt"
+	"io"
+)
 
 type Position struct {
 	Index      int
@@ -20,4 +23,8 @@ type Section struct {
 type Token struct {
 	Type *Type
 	Section
+}
+
+func (token *Token) Visualise(w io.Writer) {
+	fmt.Fprintf(w, "%s(%q, %d:%d)\n", token.Type.Name, token.Src, token.Pos.LineNumber, token.Pos.LineOffset)
 }

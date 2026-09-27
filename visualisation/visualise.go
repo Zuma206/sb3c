@@ -6,8 +6,6 @@ import (
 	"iter"
 	"os"
 	"reflect"
-
-	"github.com/zuma206/sb3c/lexer"
 )
 
 type Visualiser struct {
@@ -75,6 +73,8 @@ func (visualiser *Visualiser) visualiseWithReflection(value any) bool {
 		visualiser.visualisePointer(value)
 	case reflect.Struct:
 		visualiser.visualiseStruct(value)
+	case reflect.String:
+		fmt.Fprintf(visualiser.file, "%q\n", value)
 	default:
 		return false
 	}
@@ -96,13 +96,13 @@ func (visualiser *Visualiser) visualiseIterAny(iterAny IterAny) {
 	visualiser.print("}\n")
 }
 
+type Visualisable interface {
+	Visualise(io.Writer)
+}
+
 func (visualiser *Visualiser) visualiseSpecialCase(value any) bool {
-	if token, ok := value.(*lexer.Token); ok && token != nil {
-		fmt.Fprintf(visualiser.file, "%s(%q, %d:%d)\n",
-			token.Type.Name, token.Src, token.Pos.LineNumber, token.Pos.LineOffset)
-	} else if error, ok := value.(*lexer.Section); ok {
-		fmt.Fprintf(visualiser.file, "%q, %d:%d\n",
-			error.Src, error.Pos.LineNumber, error.Pos.LineOffset)
+	if visualisable, ok := value.(Visualisable); ok && visualisable != nil {
+		visualisable.Visualise(visualiser.file)
 	} else if iterAny, ok := value.(IterAny); ok {
 		visualiser.visualiseIterAny(iterAny)
 	} else {
