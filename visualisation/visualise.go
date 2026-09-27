@@ -100,8 +100,19 @@ type Visualisable interface {
 	Visualise(io.Writer)
 }
 
+func isNil(value any) bool {
+	valueof := reflect.ValueOf(value)
+	switch valueof.Kind() {
+	case reflect.Pointer, reflect.Map, reflect.Interface, reflect.Slice:
+		return valueof.IsNil()
+	}
+	return false
+}
+
 func (visualiser *Visualiser) visualiseSpecialCase(value any) bool {
-	if visualisable, ok := value.(Visualisable); ok && visualisable != nil {
+	if isNil(value) {
+		fmt.Fprintln(visualiser.file, value)
+	} else if visualisable, ok := value.(Visualisable); ok {
 		visualisable.Visualise(visualiser.file)
 	} else if iterAny, ok := value.(IterAny); ok {
 		visualiser.visualiseIterAny(iterAny)
