@@ -8,6 +8,7 @@ import (
 )
 
 type Parser[U any] struct {
+	Debug  func(any)
 	tokens []U
 	index  int
 }
@@ -37,6 +38,9 @@ func (parser *Parser[U]) Consume() (U, error) {
 		return utils.Zero[U](), err
 	}
 	parser.index++
+	if parser.Debug != nil {
+		parser.Debug(token)
+	}
 	return token, nil
 }
 

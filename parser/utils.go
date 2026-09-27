@@ -32,6 +32,9 @@ func Returns[T any, U any](f func(value *T) StepAny[U]) StepFunc[*T, U] {
 	return func(p *Parser[U]) (*T, error) {
 		var value T
 		_, err := f(&value).ParseAny(p)
+		if err == nil && p.Debug != nil {
+			p.Debug(value)
+		}
 		return &value, err
 	}
 }
