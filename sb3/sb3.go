@@ -17,7 +17,6 @@ import (
 // Represents a .sb3 file
 type SB3 struct {
 	assets  []StoredAsset
-	stage   *TargetHnd
 	project Project
 	fs      fs.FS
 }
@@ -41,17 +40,7 @@ func NewSB3(fileSystem fs.FS) *SB3 {
 
 var MissingStageError = errors.New("missing stage")
 
-func (sb3 *SB3) Validate() error {
-	if sb3.stage == nil {
-		return MissingStageError
-	}
-	return nil
-}
-
 func (sb3 *SB3) WriteTo(w io.Writer) (int64, error) {
-	if err := sb3.Validate(); err != nil {
-		return 0, err
-	}
 	counter := utils.NewCounter(w)
 	sb3File := zip.NewWriter(counter)
 	defer sb3File.Close()
@@ -102,17 +91,18 @@ func (sb3 *SB3) newTarget(name string, isStage bool) *Target {
 	return target
 }
 
-var StageAlreadyExistsError = errors.New("found second class extending stage")
-
-func (sb3 *SB3) NewStage() (*TargetHnd, error) {
-	if sb3.stage != nil {
-		return nil, StageAlreadyExistsError
+func (sb3 *SB3) NewSprite(name string) *TargetHnd {
+	return &TargetHnd{
+		target: sb3.newTarget(name, false),
+		sb3:    sb3,
 	}
-	sb3.stage = &TargetHnd{
+}
+
+func (sb3 *SB3) NewStage() *TargetHnd {
+	return &TargetHnd{
 		target: sb3.newTarget("Stage", true),
 		sb3:    sb3,
 	}
-	return sb3.stage, nil
 }
 
 var InvalidCostumePathErr = errors.New("invalid costume path")
