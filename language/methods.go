@@ -4,46 +4,36 @@ import (
 	"errors"
 
 	"github.com/zuma206/sb3c/lexer"
-	"github.com/zuma206/sb3c/parser"
+	. "github.com/zuma206/sb3c/parser"
 	"github.com/zuma206/sb3c/utils"
 )
 
-func parseMethod(p *parser.Parser) (*Method, error) {
-	method := &Method{Args: utils.NewList[*lexer.Token]()}
-	var err error
-	if err = p.Parse([]*parser.ParseStep{
-		{Matcher: Whitespace, Optional: true},
-		{Matcher: Symbol.WithSource(CloseBracket)},
-		{Matcher: Whitespace, Optional: true},
-		{Matcher: Symbol.WithSource(OpenBrace)},
-		{Matcher: Whitespace, Optional: true},
-	}); err != nil {
-		return nil, err
-	}
-	method.Calls, err = parseCalls(p)
-	if err != nil {
-		return nil, err
-	}
-	return method, nil
+type Method struct {
+	Args  *utils.List[*lexer.Token]
+	Calls *utils.List[*Call]
 }
 
-var CallSemicolonErr = errors.New("missing semicolon after call")
+var FailedMethodParseErr = errors.New("failed method parse")
 
-func parseCalls(p *parser.Parser) (*utils.List[*Call], error) {
-	functionCalls := utils.NewList[*Call]()
-	for true {
-		p.ConsumeIf(Whitespace)
-		if _, err := p.ConsumeIf(Symbol.WithSource(CloseBrace)); err == nil {
-			break
-		}
-		functionCall, err := parseCall(p)
-		if err != nil {
-			return nil, err
-		}
-		if _, err := p.ConsumeIf(Symbol.WithSource(Semicolon)); err != nil {
-			return nil, errors.Join(CallSemicolonErr, err)
-		}
-		functionCalls.PushBack(functionCall)
-	}
-	return functionCalls, nil
-}
+var method = Err(FailedMethodParseErr,
+	Returns(func(method *Method) StepAny[*lexer.Token] {
+		return Sequence(
+			OpenBracket, Optional(Whitespace), CloseBracket,
+			Optional(Whitespace),
+			OpenBrace, Set(&method.Calls, methodCalls), CloseBrace,
+		)
+	}),
+)
+
+var FailedMethodCallsParseErr = errors.New("failed method calls parse")
+
+var methodCalls = Err(FailedMethodCallsParseErr,
+	Until(
+		Affix(
+			Optional(Whitespace), call,
+			Sequence(Optional(Whitespace), Semicolon, Optional(Whitespace)),
+		),
+		CloseBrace,
+		SkipConsumingCondition,
+	),
+)

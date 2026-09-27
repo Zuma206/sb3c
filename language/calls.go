@@ -4,50 +4,36 @@ import (
 	"errors"
 
 	"github.com/zuma206/sb3c/lexer"
-	"github.com/zuma206/sb3c/parser"
+	. "github.com/zuma206/sb3c/parser"
 	"github.com/zuma206/sb3c/utils"
 )
 
-var (
-	CallErr      = errors.New("failed to parse call")
-	CallCloseErr = errors.New("failed to parse call close")
+type Call struct {
+	Path *lexer.Token
+	Args *utils.List[*Expression]
+}
+
+var FailedCallParseErr = errors.New("failed call parse")
+
+var call = Err(FailedCallParseErr,
+	Returns(func(call *Call) StepAny[*lexer.Token] {
+		return Sequence(
+			Set(&call.Path, OneOf(Identifier, Path)),
+			Optional(Whitespace), OpenBracket,
+			Set(&call.Args,
+				If(CloseBracket, SkipConsumingCondition,
+					None[*Expression, *lexer.Token](), callArgs),
+			),
+			CloseBracket,
+		)
+	}),
 )
 
-func parseCall(p *parser.Parser) (*Call, error) {
-	call := &Call{}
-	var err error
-	if err = p.Parse([]*parser.ParseStep{
-		{Matcher: lexer.MatchAny(Path, Identifier), Result: &call.Path},
-		{Matcher: Symbol.WithSource(OpenBracket)},
-		{Matcher: Whitespace, Optional: true},
-	}); err != nil {
-		return nil, errors.Join(CallErr, err)
-	}
-	call.Args, err = parseCallArgs(p)
-	if err != nil {
-		return nil, err
-	}
-	if err = p.Parse([]*parser.ParseStep{
-		{Matcher: Symbol.WithSource(CloseBracket)},
-	}); err != nil {
-		return nil, errors.Join(CallCloseErr, err)
-	}
-	return call, nil
-}
+var FailedCallArgsParseErr = errors.New("failed call args parse")
 
-func parseCallArgs(p *parser.Parser) (*utils.List[*lexer.Token], error) {
-	args := utils.NewList[*lexer.Token]()
-	for !p.Check(Symbol.WithSource(CloseBracket)) {
-		p.ConsumeIf(Whitespace)
-		arg, err := parseExpression(p)
-		if err != nil {
-			return nil, err
-		}
-		args.PushBack(arg)
-		p.ConsumeIf(Whitespace)
-		if _, err := p.ConsumeIf(Symbol.WithSource(Comma)); err != nil {
-			break
-		}
-	}
-	return args, nil
-}
+var callArgs = Err(FailedCallArgsParseErr,
+	DoWhile(
+		Affix(Optional(Whitespace), expression, Optional(Whitespace)),
+		Comma, ConsumeCondition,
+	),
+)

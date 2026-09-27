@@ -1,14 +1,16 @@
 package sb3
 
-import "encoding/json"
+import (
+	"encoding/json"
+)
 
 type Input struct {
 	shadow  string
 	literal *Literal
 }
 
-func LiteralInput(literal *Literal) *Input {
-	return &Input{literal: literal}
+func LiteralInput(literalType LiteralType, value string) *Input {
+	return &Input{literal: &Literal{Type: literalType, Value: value}}
 }
 
 func ShadowInput(shadow string) *Input {
