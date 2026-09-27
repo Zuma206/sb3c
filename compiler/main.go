@@ -38,11 +38,11 @@ func Main() error {
 	if err != nil {
 		return err
 	}
-	result := Compile(inputs.src, os.DirFS(inputs.dir))
-	if result.Tokens != nil && inputs.args.Tokens {
+	result := Compile(inputs.src, os.DirFS(inputs.dir), inputs.args.DebugParsing)
+	if result.Tokens != nil && inputs.args.DebugTokens {
 		visualisation.Visualise(result.Tokens)
 	}
-	if result.Program != nil && result.Err == nil && inputs.args.Syntax {
+	if result.Program != nil && result.Err == nil && inputs.args.DebugAst {
 		visualisation.Visualise(result.Program)
 	}
 	if result.Err != nil {

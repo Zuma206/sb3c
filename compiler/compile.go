@@ -3,12 +3,14 @@ package compiler
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"io/fs"
 
 	"github.com/zuma206/sb3c/codegen"
 	"github.com/zuma206/sb3c/language"
 	"github.com/zuma206/sb3c/lexer"
 	"github.com/zuma206/sb3c/parser"
+	"github.com/zuma206/sb3c/visualisation"
 )
 
 type CompileResult struct {
@@ -18,7 +20,7 @@ type CompileResult struct {
 	Err     error
 }
 
-func Compile(src string, fileSystem fs.FS) *CompileResult {
+func Compile(src string, fileSystem fs.FS, debugParse bool) *CompileResult {
 	result := &CompileResult{}
 	l := lexer.NewLexer(src, language.Types)
 	result.Tokens = l.GetTokens()
@@ -27,6 +29,12 @@ func Compile(src string, fileSystem fs.FS) *CompileResult {
 		return result
 	}
 	p := parser.NewParser(result.Tokens)
+	if debugParse {
+		p.Debug = func(a any) {
+			fmt.Print("parsed: ")
+			visualisation.Visualise(a)
+		}
+	}
 	result.Program, result.Err = language.ParseProgram(p)
 	if result.Err != nil {
 		return result

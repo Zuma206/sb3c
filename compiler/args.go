@@ -8,10 +8,11 @@ import (
 
 // All positional arguments and flags used by the compiler
 type Args struct {
-	Tokens  bool
-	Syntax  bool
-	Outfile string
-	Target  string
+	DebugTokens  bool
+	DebugAst     bool
+	DebugParsing bool
+	Outfile      string
+	Target       string
 }
 
 // Expected number of positional arguments needed to construct Args
@@ -27,8 +28,9 @@ var (
 func newArgs() *Args {
 	args := &Args{}
 	flag.StringVar(&args.Outfile, "o", "project.sb3", "sb3 file to output to")
-	flag.BoolVar(&args.Tokens, "t", false, "print lex tokens to stdout")
-	flag.BoolVar(&args.Syntax, "s", false, "print syntax tree to stdout")
+	flag.BoolVar(&args.DebugTokens, "debug-tokens", false, "print lex tokens to stdout")
+	flag.BoolVar(&args.DebugAst, "debug-ast", false, "print abstract syntax tree to stdout")
+	flag.BoolVar(&args.DebugParsing, "debug-parsing", false, "print tokens and syntax as it's parsed")
 	return args
 }
 
