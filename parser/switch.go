@@ -26,8 +26,7 @@ func Switch[T any, U any](cases ...*switchCase[T, U]) StepFunc[T, U] {
 			if switchCase.check.CanParse(p) != nil {
 				continue
 			}
-			_, err := switchCase.check.ParseAny(p)
-			return utils.Zero[T](), err
+			return switchCase.step.Parse(p)
 		}
 		return utils.Zero[T](), NoCaseHitErr
 	}
